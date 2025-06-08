@@ -34,19 +34,27 @@ function updatePartnerUI() {
     const hasAnswered = userAnswers[currentQ] !== undefined;
 
     const swipeContainer = document.getElementById('swipeContainer');
+    const answerButtons = document.getElementById('answerButtons');
     const waitingMsg = document.getElementById('waitingMessage');
 
     if (hasAnswered) {
-        // Hide swipe interface and show waiting message
+        // Hide all input interfaces and show waiting message
         if (swipeContainer) swipeContainer.style.display = 'none';
+        if (answerButtons) answerButtons.style.display = 'none';
         if (typeof hideSwipeCard === 'function') hideSwipeCard();
         waitingMsg.style.display = 'block';
     } else {
-        // Show swipe interface and hide waiting message
-        if (swipeContainer) swipeContainer.style.display = 'block';
-        if (typeof showSwipeCard === 'function') showSwipeCard();
-        if (typeof updateSwipeCard === 'function') updateSwipeCard(questions[currentQ]);
+        // Show appropriate interface based on device and hide waiting message
         waitingMsg.style.display = 'none';
+        
+        if (typeof updateSwipeCard === 'function') {
+            updateSwipeCard(questions[currentQ]);
+        }
+        
+        // The swipe handler will decide which interface to show based on touch capability
+        if (typeof showSwipeCard === 'function') {
+            showSwipeCard();
+        }
     }
 }
 
