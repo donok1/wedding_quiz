@@ -45,11 +45,12 @@ body::before {
 
 .container.admin-mode {
     max-width: 1600px;
-    width: 90vw;
-    height: 90vh;
-    max-height: 900px;
+    width: 1600px;
+    height: 800px;
+    max-height: 800px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .container::before {
@@ -81,9 +82,9 @@ body::before {
 }
 
 .header.admin-mode {
-    padding: 20px;
+    padding: 15px 20px;
     flex-shrink: 0;
-    height: 120px;
+    height: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -120,8 +121,8 @@ h1 {
 }
 
 h1.admin-mode {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
+    font-size: 1.4rem;
+    margin-bottom: 3px;
 }
 
 .subtitle {
@@ -131,7 +132,7 @@ h1.admin-mode {
 }
 
 .subtitle.admin-mode {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .room-indicator {
@@ -156,9 +157,12 @@ h1.admin-mode {
 }
 
 .main-content.admin-mode {
-    padding: 25px;
-    height: 880px;
+    padding: 20px;
+    height: 720px;
     overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 /* === SETUP SCREEN === */
@@ -288,10 +292,14 @@ input[type="text"]:focus {
 }
 
 .question-counter.admin-mode {
-    padding: 10px;
-    margin-bottom: 15px;
-    font-size: 1rem;
+    padding: 8px 15px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
     flex-shrink: 0;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .question {
@@ -303,15 +311,16 @@ input[type="text"]:focus {
 }
 
 .question.admin-mode {
-    font-size: 3rem;
-    margin-bottom: 20px;
-    height: 200px;
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 20px 0;
+    padding: 10px;
     flex-shrink: 0;
+    line-height: 1.2;
 }
 
 /* === ANSWER BUTTONS === */
@@ -373,17 +382,18 @@ input[type="text"]:focus {
 
 .admin-waiting {
     text-align: center;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #F57F17;
-    padding: 30px;
+    padding: 15px;
     background: linear-gradient(135deg, #FFF9C4, #FFF59D);
-    border-radius: 20px;
-    margin: 20px 0;
+    border-radius: 15px;
+    margin: 10px 0;
     flex-shrink: 0;
-    height: 120px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: bold;
 }
 
 /* === ADMIN STATUS === */
@@ -391,25 +401,25 @@ input[type="text"]:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     flex-shrink: 0;
-    height: 50px;
+    height: 40px;
 }
 
 .admin-status {
     display: flex;
-    gap: 20px;
-    font-size: 0.9rem;
+    gap: 15px;
+    font-size: 0.85rem;
 }
 
 .player-status {
     background: rgba(255, 255, 255, 0.8);
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 15px;
     border: 2px solid transparent;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .fanny-status {
@@ -433,9 +443,9 @@ input[type="text"]:focus {
 }
 
 .status-indicator {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
+    padding: 3px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
     font-weight: bold;
 }
 
@@ -463,17 +473,17 @@ input[type="text"]:focus {
 .results-display {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    margin: 20px 0;
+    gap: 20px;
+    margin: 10px 0;
     flex-shrink: 0;
-    height: 280px;
+    height: 180px;
 }
 
 .partner-result {
     background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
-    padding: 30px;
-    border-radius: 25px;
-    border: 4px solid transparent;
+    padding: 20px;
+    border-radius: 20px;
+    border: 3px solid transparent;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -490,15 +500,15 @@ input[type="text"]:focus {
 }
 
 .partner-name {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .answer-display {
-    font-size: 1.8rem;
-    padding: 20px;
-    border-radius: 25px;
+    font-size: 1.4rem;
+    padding: 15px;
+    border-radius: 20px;
     font-weight: bold;
 }
 
@@ -514,12 +524,12 @@ input[type="text"]:focus {
 
 /* === MATCH INDICATOR === */
 .match-indicator {
-    margin: 15px 0;
-    font-size: 2.2rem;
+    margin: 10px 0;
+    font-size: 1.8rem;
     font-weight: bold;
     text-align: center;
     flex-shrink: 0;
-    height: 80px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -538,38 +548,42 @@ input[type="text"]:focus {
     background: linear-gradient(45deg, #66BB6A, #4CAF50);
     color: white;
     border: none;
-    padding: 15px 40px;
-    border-radius: 25px;
-    font-size: 1.3rem;
+    padding: 12px 30px;
+    border-radius: 20px;
+    font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     margin: 10px auto 0;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
     display: block;
     flex-shrink: 0;
-    height: 60px;
+    height: 45px;
 }
 
 .next-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(76, 175, 80, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
 }
 
 /* === FINAL RESULTS === */
 .final-results {
     text-align: center;
-    padding: 45px;
+    padding: 30px;
     background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
     color: white;
     border-radius: 20px;
-    margin: 35px 0;
+    margin: 20px 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .compatibility-score {
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: bold;
-    margin: 25px 0;
+    margin: 20px 0;
 }
 
 /* === CONNECTION STATUS === */
@@ -636,7 +650,7 @@ input[type="text"]:focus {
     }
 
     .question.admin-mode {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
 
     .container {
