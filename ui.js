@@ -1,4 +1,4 @@
-// ui.js - User Interface Management
+// ui.js - User Interface Management (Updated for Swipe)
 
 // Main UI update dispatcher
 function updateUI() {
@@ -33,14 +33,19 @@ function updatePartnerUI() {
     const userAnswers = gameState.userRole === 'fanny' ? roomData.fannyAnswers : roomData.nelsonAnswers;
     const hasAnswered = userAnswers[currentQ] !== undefined;
 
-    const buttons = document.querySelectorAll('.answer-btn');
+    const swipeContainer = document.getElementById('swipeContainer');
     const waitingMsg = document.getElementById('waitingMessage');
 
     if (hasAnswered) {
-        buttons.forEach(btn => btn.style.display = 'none');
+        // Hide swipe interface and show waiting message
+        if (swipeContainer) swipeContainer.style.display = 'none';
+        if (typeof hideSwipeCard === 'function') hideSwipeCard();
         waitingMsg.style.display = 'block';
     } else {
-        buttons.forEach(btn => btn.style.display = 'inline-block');
+        // Show swipe interface and hide waiting message
+        if (swipeContainer) swipeContainer.style.display = 'block';
+        if (typeof showSwipeCard === 'function') showSwipeCard();
+        if (typeof updateSwipeCard === 'function') updateSwipeCard(questions[currentQ]);
         waitingMsg.style.display = 'none';
     }
 }
