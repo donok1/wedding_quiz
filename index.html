@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Quiz de Mariage - Fanny & Nelson</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -48,10 +48,18 @@
                     Question <span id="questionNumber">1</span> sur 15
                 </div>
                 <div class="question" id="questionText"></div>
-                <div class="answer-buttons">
+                
+                <!-- Swipe Card Container (will be populated by swipe.js) -->
+                <div class="swipe-container" id="swipeContainer" style="display: none;">
+                    <!-- Swipe card will be inserted here by JavaScript -->
+                </div>
+
+                <!-- Traditional answer buttons (hidden by default, fallback for admin) -->
+                <div class="answer-buttons" id="answerButtons">
                     <button class="answer-btn like-btn" onclick="submitAnswer(true)">J'aime ! 🌟</button>
                     <button class="answer-btn dislike-btn" onclick="submitAnswer(false)">Je n'aime pas 🚫</button>
                 </div>
+
                 <div id="waitingMessage" class="waiting" style="display: none;">
                     <h3>⏳ En attente de votre partenaire...</h3>
                     <p>Veuillez patienter pendant que votre partenaire répond à la question.</p>
@@ -117,6 +125,7 @@
     <script src="gamelogic.js"></script>
     <script src="ui.js"></script>
     <script src="sync.js"></script>
+    <script src="swipe.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
