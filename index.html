@@ -886,4 +886,197 @@
             loadRoomData();
             saveRoomData();
             
-            document.getElementById('roleSelection').style.display
+            document.getElementById('roleSelection').style.display = 'block';
+            updateRoomIndicator();
+            startSync();
+            updateConnectionStatus(true);
+        }
+
+        function selectRole(role) {
+            gameState.userRole = role;
+            document.getElementById('setupScreen').style.display = 'none';
+            
+            if (role === 'admin') {
+                document.getElementById('adminScreen').style.display = 'block';
+                if (!roomData.gameStarted) {
+                    roomData.gameStarted = true;
+                    saveRoomData();
+                }
+            } else {
+                document.getElementById('questionScreen').style.display = 'block';
+            }
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            if (gameState.userRole === 'admin') {
+                updateAdminUI();
+            } else if (gameState.userRole === 'fanny' || gameState.userRole === 'nelson') {
+                updatePartnerUI();
+            }
+        }
+
+        function updatePartnerUI() {
+            if (roomData.gameCompleted) {
+                // Show completion message
+                document.getElementById('questionScreen').innerHTML = `
+                    <div class="final-results">
+                        <h2>🎉 Quiz Terminé ! 🎉</h2>
+                        <p>Consultez l'écran d'affichage pour les résultats finaux !</p>
+                        <button class="next-btn" onclick="location.reload()">Nouveau Jeu</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentQ = roomData.currentQuestion;
+            if (currentQ >= questions.length) return;
+
+            document.getElementById('questionNumber').textContent = currentQ + 1;
+            document.getElementById('questionText').textContent = questions[currentQ];
+
+            // Check if user has already answered this question
+            const userAnswers = gameState.userRole === 'fanny' ? roomData.fannyAnswers : roomData.nelsonAnswers;
+            const hasAnswered = userAnswers[currentQ] !== undefined;
+
+            const buttons = document.querySelectorAll('.answer-btn');
+            const waitingMsg = document.getElementById('waitingMessage');
+
+            if (hasAnswered) {
+                buttons.forEach(btn => btn.style.display = 'none');
+                waitingMsg.style.display = 'block';
+            } else {
+                buttons.forEach(btn => btn.style.display = 'inline-block');
+                waitingMsg.style.display = 'none';
+            }
+        }
+
+        function updateAdminUI() {
+            const currentQ = roomData.currentQuestion;
+            
+            if (currentQ >= questions.length || roomData.gameCompleted) {
+                showFinalResults();
+                return;
+            }
+
+            document.getElementById('adminQuestionNumber').textContent = currentQ + 1;
+            document.getElementById('adminQuestionText').textContent = questions[currentQ];
+
+            const hasFanny = roomData.fannyAnswers[currentQ] !== undefined;
+            const hasNelson = roomData.nelsonAnswers[currentQ] !== undefined;
+
+            if (hasFanny && hasNelson) {
+                document.getElementById('adminWaiting').style.display = 'none';
+                document.getElementById('adminResults').style.display = 'grid';
+                
+                const fannyAnswer = roomData.fannyAnswers[currentQ];
+                const nelsonAnswer = roomData.nelsonAnswers[currentQ];
+                
+                document.getElementById('fannyAnswer').textContent = fannyAnswer ? "J'aime ! 🌟" : "Je n'aime pas 🚫";
+                document.getElementById('fannyAnswer').className = `answer-display ${fannyAnswer ? 'like-answer' : 'dislike-answer'}`;
+                
+                document.getElementById('nelsonAnswer').textContent = nelsonAnswer ? "J'aime ! 🌟" : "Je n'aime pas 🚫";
+                document.getElementById('nelsonAnswer').className = `answer-display ${nelsonAnswer ? 'like-answer' : 'dislike-answer'}`;
+                
+                const isMatch = fannyAnswer === nelsonAnswer;
+                const matchElement = document.getElementById('matchResult');
+                matchElement.style.display = 'block';
+                matchElement.textContent = isMatch ? "🎉 C'est un match !" : "💔 Pas d'accord";
+                matchElement.className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
+                
+                document.getElementById('nextBtn').style.display = 'inline-block';
+            } else {
+                document.getElementById('adminWaiting').style.display = 'block';
+                document.getElementById('adminResults').style.display = 'none';
+                document.getElementById('matchResult').style.display = 'none';
+                document.getElementById('nextBtn').style.display = 'none';
+            }
+        }
+
+        function submitAnswer(answer) {
+            const currentQ = roomData.currentQuestion;
+            
+            if (gameState.userRole === 'fanny') {
+                roomData.fannyAnswers[currentQ] = answer;
+            } else if (gameState.userRole === 'nelson') {
+                roomData.nelsonAnswers[currentQ] = answer;
+            }
+
+            // Check for match and update count
+            if (roomData.fannyAnswers[currentQ] !== undefined && roomData.nelsonAnswers[currentQ] !== undefined) {
+                if (roomData.fannyAnswers[currentQ] === roomData.nelsonAnswers[currentQ]) {
+                    // Only increment if this is a new match (prevent double counting)
+                    let matchCount = 0;
+                    for (let i = 0; i <= currentQ; i++) {
+                        if (roomData.fannyAnswers[i] !== undefined && roomData.nelsonAnswers[i] !== undefined) {
+                            if (roomData.fannyAnswers[i] === roomData.nelsonAnswers[i]) {
+                                matchCount++;
+                            }
+                        }
+                    }
+                    roomData.matches = matchCount;
+                }
+            }
+
+            saveRoomData();
+            updateUI();
+        }
+
+        function nextQuestion() {
+            roomData.currentQuestion++;
+            
+            if (roomData.currentQuestion >= questions.length) {
+                roomData.gameCompleted = true;
+            }
+            
+            saveRoomData();
+            updateUI();
+        }
+
+        function showFinalResults() {
+            const compatibility = Math.round((roomData.matches / questions.length) * 100);
+            
+            document.getElementById('adminScreen').innerHTML = `
+                <div class="final-results">
+                    <h2>🎉 Quiz Terminé ! 🎉</h2>
+                    <div class="compatibility-score">${compatibility}%</div>
+                    <p>Vous êtes d'accord sur <strong>${roomData.matches}</strong> questions sur <strong>${questions.length}</strong> !</p>
+                    <p>${getCompatibilityMessage(compatibility)}</p>
+                    <button class="next-btn" onclick="restartQuiz()">Nouveau Quiz</button>
+                </div>
+            `;
+        }
+
+        function getCompatibilityMessage(percentage) {
+            if (percentage >= 80) return "Vous êtes parfaitement synchronisés ! 💕🌿";
+            if (percentage >= 60) return "Excellente compatibilité ! Vous vous connaissez bien ! 😊🌸";
+            if (percentage >= 40) return "Quelques différences rendent la vie intéressante ! 🌟🌻";
+            return "Les opposés s'attirent ! Vous vous complétez ! ⚖️🌺";
+        }
+
+        function restartQuiz() {
+            roomData = initializeRoomData();
+            saveRoomData();
+            location.reload();
+        }
+
+        // Initialize connection status
+        updateConnectionStatus(false);
+
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            stopSync();
+        });
+
+        // Handle page visibility change (pause sync when tab is hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopSync();
+            } else if (gameState.roomCode) {
+                startSync();
+            }
+        });
+    </script>
+</body>
+</html>
