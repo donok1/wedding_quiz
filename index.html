@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Quiz Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '💕';
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            font-size: 24px;
+        }
+
+        .header::after {
+            content: '💕';
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            font-size: 24px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .role-selection {
+            text-align: center;
+        }
+
+        .role-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .role-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .role-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        .partner-b {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        .partner-b:hover {
+            box-shadow: 0 12px 35px rgba(78, 205, 196, 0.4);
+        }
+
+        .admin-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .admin-btn:hover {
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .question-screen, .results-screen, .admin-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .question-counter {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .question {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        .answer-buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .answer-btn {
+            padding: 20px 50px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .like-btn {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.3);
+        }
+
+        .like-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(86, 171, 47, 0.4);
+        }
+
+        .dislike-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .dislike-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        .waiting {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .waiting h3 {
+            color: #d68910;
+            margin-bottom: 15px;
+        }
+
+        .results-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .partner-result {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px solid transparent;
+        }
+
+        .partner-a-result {
+            border-color: #ff6b6b;
+        }
+
+        .partner-b-result {
+            border-color: #4ecdc4;
+        }
+
+        .partner-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .partner-a-name {
+            color: #ff6b6b;
+        }
+
+        .partner-b-name {
+            color: #4ecdc4;
+        }
+
+        .answer-display {
+            font-size: 1.5rem;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+
+        .like-answer {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .dislike-answer {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .match-indicator {
+            margin-top: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .match {
+            color: #27ae60;
+        }
+
+        .no-match {
+            color: #e74c3c;
+        }
+
+        .next-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .next-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .final-results {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .compatibility-score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .role-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .answer-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .results-display {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .question {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Wedding Quiz</h1>
+            <div class="subtitle">Find out how well you know each other!</div>
+        </div>
+
+        <div class="main-content">
+            <!-- Role Selection Screen -->
+            <div id="roleSelection" class="role-selection">
+                <h2>Choose Your Role</h2>
+                <div class="role-buttons">
+                    <button class="role-btn" onclick="selectRole('partnerA')">Partner A</button>
+                    <button class="role-btn partner-b" onclick="selectRole('partnerB')">Partner B</button>
+                    <button class="role-btn admin-btn" onclick="selectRole('admin')">Admin/Display</button>
+                </div>
+            </div>
+
+            <!-- Question Screen -->
+            <div id="questionScreen" class="question-screen">
+                <div class="question-counter">
+                    Question <span id="questionNumber">1</span> of 15
+                </div>
+                <div class="question" id="questionText"></div>
+                <div class="answer-buttons">
+                    <button class="answer-btn like-btn" onclick="submitAnswer(true)">I Like It! 👍</button>
+                    <button class="answer-btn dislike-btn" onclick="submitAnswer(false)">I Don't Like It 👎</button>
+                </div>
+                <div id="waitingMessage" class="waiting" style="display: none;">
+                    <h3>⏳ Waiting for your partner...</h3>
+                    <p>Please wait while your partner answers the question.</p>
+                </div>
+            </div>
+
+            <!-- Admin/Results Screen -->
+            <div id="adminScreen" class="admin-screen">
+                <div class="question-counter">
+                    Question <span id="adminQuestionNumber">1</span> of 15
+                </div>
+                <div class="question" id="adminQuestionText"></div>
+                
+                <div id="adminWaiting" class="waiting">
+                    <h3>⏳ Waiting for both partners to answer...</h3>
+                    <p>The results will appear here once both partners have responded.</p>
+                </div>
+
+                <div id="adminResults" class="results-display" style="display: none;">
+                    <div class="partner-result partner-a-result">
+                        <div class="partner-name partner-a-name">Partner A</div>
+                        <div class="answer-display" id="partnerAAnswer"></div>
+                    </div>
+                    <div class="partner-result partner-b-result">
+                        <div class="partner-name partner-b-name">Partner B</div>
+                        <div class="answer-display" id="partnerBAnswer"></div>
+                    </div>
+                </div>
+
+                <div id="matchResult" class="match-indicator" style="display: none;"></div>
+
+                <button id="nextBtn" class="next-btn" onclick="nextQuestion()" style="display: none;">
+                    Next Question →
+                </button>
+
+                <div id="finalResults" style="display: none;">
+                    <div class="final-results">
+                        <h2>🎉 Quiz Complete! 🎉</h2>
+                        <div class="compatibility-score" id="compatibilityScore"></div>
+                        <p>You matched on <span id="matchCount"></span> out of 15 questions!</p>
+                        <button class="next-btn" onclick="restartQuiz()">Start New Quiz</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            "Pineapple on pizza",
+            "Waking up early on weekends",
+            "Horror movies",
+            "Singing in the shower",
+            "Social media",
+            "Dancing at parties",
+            "Camping in the wilderness",
+            "Spicy food",
+            "Surprise parties",
+            "Long romantic walks",
+            "Cooking together",
+            "Watching reality TV shows",
+            "Shopping for clothes",
+            "Playing board games",
+            "Taking selfies"
+        ];
+
+        let gameState = {
+            currentQuestion: 0,
+            partnerAAnswers: [],
+            partnerBAnswers: [],
+            userRole: null,
+            matches: 0
+        };
+
+        function selectRole(role) {
+            gameState.userRole = role;
+            document.getElementById('roleSelection').style.display = 'none';
+            
+            if (role === 'admin') {
+                document.getElementById('adminScreen').style.display = 'block';
+                showAdminQuestion();
+            } else {
+                document.getElementById('questionScreen').style.display = 'block';
+                showQuestion();
+            }
+        }
+
+        function showQuestion() {
+            if (gameState.currentQuestion >= questions.length) {
+                return;
+            }
+
+            document.getElementById('questionNumber').textContent = gameState.currentQuestion + 1;
+            document.getElementById('questionText').textContent = questions[gameState.currentQuestion];
+            document.getElementById('waitingMessage').style.display = 'none';
+            
+            // Show answer buttons
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => btn.style.display = 'inline-block');
+        }
+
+        function showAdminQuestion() {
+            if (gameState.currentQuestion >= questions.length) {
+                showFinalResults();
+                return;
+            }
+
+            document.getElementById('adminQuestionNumber').textContent = gameState.currentQuestion + 1;
+            document.getElementById('adminQuestionText').textContent = questions[gameState.currentQuestion];
+            document.getElementById('adminWaiting').style.display = 'block';
+            document.getElementById('adminResults').style.display = 'none';
+            document.getElementById('matchResult').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function submitAnswer(answer) {
+            const role = gameState.userRole;
+            
+            if (role === 'partnerA') {
+                gameState.partnerAAnswers[gameState.currentQuestion] = answer;
+            } else if (role === 'partnerB') {
+                gameState.partnerBAnswers[gameState.currentQuestion] = answer;
+            }
+
+            // Hide answer buttons and show waiting message
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => btn.style.display = 'none');
+            document.getElementById('waitingMessage').style.display = 'block';
+
+            // Check if admin screen should update
+            updateAdminDisplay();
+        }
+
+        function updateAdminDisplay() {
+            const currentQ = gameState.currentQuestion;
+            const hasPartnerA = gameState.partnerAAnswers[currentQ] !== undefined;
+            const hasPartnerB = gameState.partnerBAnswers[currentQ] !== undefined;
+
+            if (hasPartnerA && hasPartnerB) {
+                // Both answered, show results on admin screen
+                document.getElementById('adminWaiting').style.display = 'none';
+                document.getElementById('adminResults').style.display = 'grid';
+                
+                const partnerAAnswer = gameState.partnerAAnswers[currentQ];
+                const partnerBAnswer = gameState.partnerBAnswers[currentQ];
+                
+                document.getElementById('partnerAAnswer').textContent = partnerAAnswer ? "I Like It! 👍" : "I Don't Like It 👎";
+                document.getElementById('partnerAAnswer').className = `answer-display ${partnerAAnswer ? 'like-answer' : 'dislike-answer'}`;
+                
+                document.getElementById('partnerBAnswer').textContent = partnerBAnswer ? "I Like It! 👍" : "I Don't Like It 👎";
+                document.getElementById('partnerBAnswer').className = `answer-display ${partnerBAnswer ? 'like-answer' : 'dislike-answer'}`;
+                
+                // Show match result
+                const isMatch = partnerAAnswer === partnerBAnswer;
+                if (isMatch) {
+                    gameState.matches++;
+                }
+                
+                const matchElement = document.getElementById('matchResult');
+                matchElement.style.display = 'block';
+                matchElement.textContent = isMatch ? "🎉 It's a Match!" : "💔 No Match";
+                matchElement.className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
+                
+                document.getElementById('nextBtn').style.display = 'inline-block';
+            }
+        }
+
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            
+            if (gameState.currentQuestion >= questions.length) {
+                showFinalResults();
+                return;
+            }
+
+            // Reset for next question
+            showAdminQuestion();
+            
+            // Update question screens for partners
+            showQuestion();
+        }
+
+        function showFinalResults() {
+            document.getElementById('adminScreen').innerHTML = `
+                <div class="final-results">
+                    <h2>🎉 Quiz Complete! 🎉</h2>
+                    <div class="compatibility-score">${Math.round((gameState.matches / questions.length) * 100)}%</div>
+                    <p>You matched on <strong>${gameState.matches}</strong> out of <strong>${questions.length}</strong> questions!</p>
+                    <p>${getCompatibilityMessage()}</p>
+                    <button class="next-btn" onclick="restartQuiz()">Start New Quiz</button>
+                </div>
+            `;
+        }
+
+        function getCompatibilityMessage() {
+            const percentage = (gameState.matches / questions.length) * 100;
+            if (percentage >= 80) return "You two are perfectly in sync! 💕";
+            if (percentage >= 60) return "Great compatibility! You know each other well! 😊";
+            if (percentage >= 40) return "Some differences make life interesting! 🌟";
+            return "Opposites attract! You balance each other out! ⚖️";
+        }
+
+        function restartQuiz() {
+            // Reset game state
+            gameState = {
+                currentQuestion: 0,
+                partnerAAnswers: [],
+                partnerBAnswers: [],
+                userRole: null,
+                matches: 0
+            };
+
+            // Show role selection
+            document.getElementById('roleSelection').style.display = 'block';
+            document.getElementById('questionScreen').style.display = 'none';
+            document.getElementById('adminScreen').style.display = 'none';
+        }
+
+        // Initialize the game
+        showQuestion();
+    </script>
+</body>
+</html>
