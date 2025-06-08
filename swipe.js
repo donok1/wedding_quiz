@@ -1,4 +1,4 @@
-// swipe.js - Tinder-like Swipe Functionality
+// swipe.js - Tinder-like Swipe Functionality (Working Implementation)
 
 class SwipeHandler {
     constructor() {
@@ -7,35 +7,44 @@ class SwipeHandler {
         this.startY = 0;
         this.currentX = 0;
         this.currentY = 0;
-        this.swipeThreshold = 80; // Minimum distance for a valid swipe
+        this.swipeThreshold = 80;
         this.card = null;
         this.answered = false;
         this.isTouchDevice = this.detectTouchDevice();
-        console.log('Touch device detected:', this.isTouchDevice); // Debug log
+        this.log('SwipeHandler initialized - Touch device:', this.isTouchDevice);
+    }
+
+    log(message, ...args) {
+        console.log(`[SwipeHandler] ${message}`, ...args);
     }
 
     detectTouchDevice() {
-        // More comprehensive touch detection
-        return (
-            ('ontouchstart' in window) ||
-            (navigator.maxTouchPoints > 0) ||
-            (navigator.msMaxTouchPoints > 0) ||
-            (window.DocumentTouch && document instanceof DocumentTouch)
-        );
+        const tests = {
+            'ontouchstart in window': 'ontouchstart' in window,
+            'navigator.maxTouchPoints > 0': navigator.maxTouchPoints > 0,
+            'navigator.msMaxTouchPoints > 0': navigator.msMaxTouchPoints > 0,
+            'window.DocumentTouch': window.DocumentTouch && document instanceof DocumentTouch
+        };
+        
+        let isTouchDevice = false;
+        for (const [test, result] of Object.entries(tests)) {
+            this.log(`${test}: ${result}`);
+            if (result) isTouchDevice = true;
+        }
+        
+        return isTouchDevice;
     }
 
     init() {
-        console.log('SwipeHandler init - Touch device:', this.isTouchDevice); // Debug log
-        
-        // Always create the interfaces
+        this.log('Initializing SwipeHandler');
         this.createSwipeCard();
         
         if (this.isTouchDevice) {
-            console.log('Setting up touch interface'); // Debug log
-            this.attachEventListeners();
+            this.log('Setting up touch interface');
             this.showSwipeInterface();
+            this.attachEventListeners();
         } else {
-            console.log('Setting up button interface'); // Debug log
+            this.log('Setting up button interface');
             this.showButtonInterface();
         }
     }
@@ -43,7 +52,7 @@ class SwipeHandler {
     createSwipeCard() {
         const questionScreen = document.getElementById('questionScreen');
         if (!questionScreen) {
-            console.log('Question screen not found'); // Debug log
+            this.log('Question screen not found');
             return;
         }
 
@@ -52,11 +61,12 @@ class SwipeHandler {
         if (!swipeContainer) {
             swipeContainer = document.createElement('div');
             swipeContainer.className = 'swipe-container';
+            swipeContainer.id = 'swipeContainer';
             
-            // Insert after question text
-            const questionText = questionScreen.querySelector('.question');
-            if (questionText) {
-                questionText.parentNode.insertBefore(swipeContainer, questionText.nextSibling);
+            // Insert after question counter
+            const questionCounter = questionScreen.querySelector('.question-counter');
+            if (questionCounter) {
+                questionCounter.parentNode.insertBefore(swipeContainer, questionCounter.nextSibling);
             } else {
                 questionScreen.appendChild(swipeContainer);
             }
@@ -64,7 +74,7 @@ class SwipeHandler {
 
         // Get current question text
         const questionTextElement = document.getElementById('questionText');
-        const currentQuestion = questionTextElement ? questionTextElement.textContent : 'Question';
+        const currentQuestion = questionTextElement ? questionTextElement.textContent : 'Question en cours...';
 
         // Create swipe card with question content
         swipeContainer.innerHTML = `
@@ -73,81 +83,74 @@ class SwipeHandler {
                     <div class="card-question">${currentQuestion}</div>
                     <div class="card-instruction">👈 Je n'aime pas &nbsp;&nbsp;&nbsp;&nbsp; J'aime 👉</div>
                 </div>
-                <div class="swipe-indicators">
-                    <div class="swipe-hint dislike-hint">
-                        <span>👈</span>
-                        <span>Non</span>
-                    </div>
-                    <div class="swipe-hint like-hint">
-                        <span>Oui</span>
-                        <span>👉</span>
-                    </div>
-                </div>
             </div>
         `;
 
         this.card = document.getElementById('swipeCard');
-        console.log('Swipe card created:', this.card); // Debug log
+        this.log('Swipe card created:', !!this.card);
     }
 
     showSwipeInterface() {
-        console.log('Showing swipe interface'); // Debug log
+        this.log('Showing swipe interface');
         
-        // Hide the original question text and show swipe interface
         const questionText = document.getElementById('questionText');
-        const swipeContainer = document.querySelector('.swipe-container');
+        const swipeContainer = document.getElementById('swipeContainer');
         const answerButtons = document.getElementById('answerButtons');
         
         if (questionText) {
-            questionText.style.display = 'none';
-            console.log('Hidden question text'); // Debug log
+            questionText.classList.add('hidden');
+            this.log('Hidden question text');
         }
         if (swipeContainer) {
+            swipeContainer.classList.remove('hidden');
             swipeContainer.style.display = 'block';
-            console.log('Shown swipe container'); // Debug log
+            this.log('Shown swipe container');
         }
         if (answerButtons) {
+            answerButtons.classList.add('hidden');
             answerButtons.style.display = 'none';
-            console.log('Hidden answer buttons'); // Debug log
+            this.log('Hidden answer buttons');
         }
     }
 
     showButtonInterface() {
-        console.log('Showing button interface'); // Debug log
+        this.log('Showing button interface');
         
-        // Show traditional buttons and hide swipe interface
         const questionText = document.getElementById('questionText');
-        const swipeContainer = document.querySelector('.swipe-container');
+        const swipeContainer = document.getElementById('swipeContainer');
         const answerButtons = document.getElementById('answerButtons');
         
         if (questionText) {
+            questionText.classList.remove('hidden');
             questionText.style.display = 'block';
-            console.log('Shown question text'); // Debug log
+            this.log('Shown question text');
         }
         if (swipeContainer) {
+            swipeContainer.classList.add('hidden');
             swipeContainer.style.display = 'none';
-            console.log('Hidden swipe container'); // Debug log
+            this.log('Hidden swipe container');
         }
         if (answerButtons) {
+            answerButtons.classList.remove('hidden');
             answerButtons.style.display = 'flex';
-            console.log('Shown answer buttons'); // Debug log
+            this.log('Shown answer buttons');
         }
     }
 
     attachEventListeners() {
         if (!this.card) {
-            console.log('No card to attach listeners to'); // Debug log
+            this.log('No card available for event listeners');
             return;
         }
 
-        console.log('Attaching event listeners to card'); // Debug log
+        this.log('Attaching event listeners');
 
         // Touch events (primary for mobile)
         this.card.addEventListener('touchstart', this.handleStart.bind(this), { passive: false });
         document.addEventListener('touchmove', this.handleMove.bind(this), { passive: false });
         document.addEventListener('touchend', this.handleEnd.bind(this));
 
-        // Mouse events (for testing on desktop with touch simulation)
+        // Mouse events (for testing)
         this.card.addEventListener('mousedown', this.handleStart.bind(this));
         document.addEventListener('mousemove', this.handleMove.bind(this));
         document.addEventListener('mouseup', this.handleEnd.bind(this));
@@ -159,7 +162,7 @@ class SwipeHandler {
     handleStart(e) {
         if (this.answered) return;
 
-        console.log('Swipe start:', e.type); // Debug log
+        this.log('Swipe start:', e.type);
         this.isDragging = true;
         this.card.classList.add('swiping');
 
@@ -186,7 +189,7 @@ class SwipeHandler {
         const deltaX = this.currentX - this.startX;
         const deltaY = this.currentY - this.startY;
 
-        // Calculate rotation based on horizontal movement
+        // Calculate rotation and opacity
         const rotation = deltaX * 0.1;
         const opacity = Math.max(0.7, 1 - Math.abs(deltaX) / 300);
 
@@ -194,8 +197,19 @@ class SwipeHandler {
         this.card.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotation}deg)`;
         this.card.style.opacity = opacity;
 
-        // Update preview state
-        this.updatePreviewState(deltaX);
+        // Visual feedback
+        if (Math.abs(deltaX) > this.swipeThreshold / 2) {
+            if (deltaX > 0) {
+                this.card.style.borderColor = '#4CAF50';
+                this.card.style.background = 'linear-gradient(135deg, #C8E6C9, #A5D6A7)';
+            } else {
+                this.card.style.borderColor = '#F44336';
+                this.card.style.background = 'linear-gradient(135deg, #FFCDD2, #EF9A9A)';
+            }
+        } else {
+            this.card.style.borderColor = 'rgba(76, 175, 80, 0.3)';
+            this.card.style.background = 'linear-gradient(135deg, #E8F5E8, #C8E6C9)';
+        }
 
         e.preventDefault();
     }
@@ -203,34 +217,20 @@ class SwipeHandler {
     handleEnd(e) {
         if (!this.isDragging || this.answered) return;
 
-        console.log('Swipe end'); // Debug log
+        this.log('Swipe end:', e.type);
         this.isDragging = false;
         this.card.classList.remove('swiping');
 
         const deltaX = this.currentX - this.startX;
-        const deltaY = this.currentY - this.startY;
 
         // Check if swipe threshold is met
         if (Math.abs(deltaX) > this.swipeThreshold) {
             const isLike = deltaX > 0;
-            console.log('Swipe completed:', isLike ? 'like' : 'dislike'); // Debug log
+            this.log('Swipe completed:', isLike ? 'LIKE' : 'DISLIKE', `(distance: ${Math.abs(deltaX)}px)`);
             this.completeSwipe(isLike);
         } else {
-            console.log('Swipe cancelled - not enough distance'); // Debug log
-            // Reset card position
+            this.log('Swipe cancelled - insufficient distance:', Math.abs(deltaX), 'px');
             this.resetCard();
-        }
-    }
-
-    updatePreviewState(deltaX) {
-        this.card.classList.remove('like-preview', 'dislike-preview');
-
-        if (Math.abs(deltaX) > this.swipeThreshold / 2) {
-            if (deltaX > 0) {
-                this.card.classList.add('like-preview');
-            } else {
-                this.card.classList.add('dislike-preview');
-            }
         }
     }
 
@@ -246,20 +246,21 @@ class SwipeHandler {
         this.card.style.transform = `translateX(${exitX}px) rotate(${exitRotation}deg)`;
         this.card.style.opacity = '0';
 
+        // Show feedback
+        this.showSwipeFeedback(isLike);
+
         // Submit answer after animation
         setTimeout(() => {
             this.submitAnswer(isLike);
         }, 300);
-
-        // Show feedback
-        this.showSwipeFeedback(isLike);
     }
 
     resetCard() {
-        this.card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+        this.card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out, background 0.3s ease-out, border-color 0.3s ease-out';
         this.card.style.transform = 'translateX(0px) translateY(0px) rotate(0deg)';
         this.card.style.opacity = '1';
-        this.card.classList.remove('like-preview', 'dislike-preview');
+        this.card.style.borderColor = 'rgba(76, 175, 80, 0.3)';
+        this.card.style.background = 'linear-gradient(135deg, #E8F5E8, #C8E6C9)';
 
         // Remove transition after animation
         setTimeout(() => {
@@ -347,20 +348,20 @@ class SwipeHandler {
     }
 
     submitAnswer(answer) {
-        console.log('Submitting answer:', answer); // Debug log
+        this.log('Submitting answer:', answer);
         // Call the existing submitAnswer function from gamelogic.js
         if (typeof submitAnswer === 'function') {
             submitAnswer(answer);
         } else {
-            console.error('submitAnswer function not found');
+            this.log('ERROR: submitAnswer function not found');
         }
     }
 
     updateCard(questionText) {
-        console.log('Updating card with question:', questionText); // Debug log
+        this.log('Updating card with question:', questionText);
         
+        // Recreate card if it doesn't exist
         if (!this.card) {
-            console.log('No card to update, creating new one'); // Debug log
             this.createSwipeCard();
         }
 
@@ -370,7 +371,9 @@ class SwipeHandler {
             this.card.style.transform = '';
             this.card.style.opacity = '';
             this.card.style.transition = '';
-            this.card.classList.remove('swiping', 'like-preview', 'dislike-preview');
+            this.card.style.borderColor = '';
+            this.card.style.background = '';
+            this.card.classList.remove('swiping');
 
             // Update card content with new question
             const cardQuestion = this.card.querySelector('.card-question');
@@ -379,8 +382,103 @@ class SwipeHandler {
             }
         }
 
-        // Show appropriate interface based on device
+        // Show appropriate interface
         if (this.isTouchDevice) {
+            this.showSwipeInterface();
+        } else {
+            this.showButtonInterface();
+        }
+    }
+
+    hideCard() {
+        this.log('Hiding all interfaces');
+        
+        const swipeContainer = document.getElementById('swipeContainer');
+        const answerButtons = document.getElementById('answerButtons');
+        
+        if (swipeContainer) {
+            swipeContainer.style.display = 'none';
+            swipeContainer.classList.add('hidden');
+        }
+        if (answerButtons) {
+            answerButtons.style.display = 'none';
+            answerButtons.classList.add('hidden');
+        }
+    }
+
+    showCard() {
+        this.log('Showing appropriate interface');
+        
+        if (this.isTouchDevice) {
+            this.showSwipeInterface();
+        } else {
+            this.showButtonInterface();
+        }
+    }
+
+    destroy() {
+        this.log('Destroying SwipeHandler');
+        if (this.card) {
+            this.card.removeEventListener('mousedown', this.handleStart);
+            this.card.removeEventListener('touchstart', this.handleStart);
+        }
+        document.removeEventListener('mousemove', this.handleMove);
+        document.removeEventListener('mouseup', this.handleEnd);
+        document.removeEventListener('touchmove', this.handleMove);
+        document.removeEventListener('touchend', this.handleEnd);
+    }
+}
+
+// Global swipe handler instance
+let swipeHandler = null;
+
+// Initialize swipe functionality
+function initializeSwipe() {
+    console.log('[Main] Initializing swipe functionality');
+    if (swipeHandler) {
+        swipeHandler.destroy();
+    }
+    swipeHandler = new SwipeHandler();
+    swipeHandler.init();
+}
+
+// Update swipe card for new question
+function updateSwipeCard(questionText) {
+    console.log('[Main] updateSwipeCard called with:', questionText);
+    if (swipeHandler) {
+        swipeHandler.updateCard(questionText);
+    } else {
+        console.log('[Main] No swipe handler available');
+    }
+}
+
+// Hide swipe card (for waiting state)
+function hideSwipeCard() {
+    console.log('[Main] hideSwipeCard called');
+    if (swipeHandler) {
+        swipeHandler.hideCard();
+    }
+}
+
+// Show swipe card
+function showSwipeCard() {
+    console.log('[Main] showSwipeCard called');
+    if (swipeHandler) {
+        swipeHandler.showCard();
+    }
+}
+
+// Check if using touch interface
+function isTouchDevice() {
+    return swipeHandler ? swipeHandler.isTouchDevice : false;
+}
+
+// Export functions for use in other files
+window.initializeSwipe = initializeSwipe;
+window.updateSwipeCard = updateSwipeCard;
+window.hideSwipeCard = hideSwipeCard;
+window.showSwipeCard = showSwipeCard;
+window.isTouchDevice = isTouchDevice;ouchDevice) {
             this.showSwipeInterface();
         } else {
             this.showButtonInterface();
