@@ -109,6 +109,9 @@ function selectRole(role) {
     gameState.userRole = role;
     document.getElementById('setupScreen').style.display = 'none';
     
+    // Hide subtitle for all roles
+    document.getElementById('mainSubtitle').style.display = 'none';
+    
     if (role === 'admin') {
         // Apply admin mode styling
         document.getElementById('mainContainer').classList.add('admin-mode');
