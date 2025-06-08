@@ -70,8 +70,38 @@
             padding: 40px;
         }
 
-        .role-selection {
+        .setup-screen {
             text-align: center;
+        }
+
+        .room-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .room-input {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .role-buttons {
@@ -79,9 +109,10 @@
             gap: 20px;
             justify-content: center;
             margin: 30px 0;
+            flex-wrap: wrap;
         }
 
-        .role-btn {
+        .role-btn, .action-btn {
             background: linear-gradient(45deg, #ff6b6b, #ee5a52);
             color: white;
             border: none;
@@ -94,7 +125,7 @@
             box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
         }
 
-        .role-btn:hover {
+        .role-btn:hover, .action-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
         }
@@ -117,7 +148,7 @@
             box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
-        .question-screen, .results-screen, .admin-screen {
+        .question-screen, .admin-screen {
             display: none;
             text-align: center;
         }
@@ -143,6 +174,7 @@
             gap: 30px;
             justify-content: center;
             margin: 40px 0;
+            flex-wrap: wrap;
         }
 
         .answer-btn {
@@ -292,6 +324,37 @@
             margin: 20px 0;
         }
 
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
         @media (max-width: 768px) {
             .role-buttons {
                 flex-direction: column;
@@ -308,6 +371,10 @@
                 gap: 20px;
             }
 
+            .room-input {
+                flex-direction: column;
+            }
+
             h1 {
                 font-size: 2rem;
             }
@@ -319,6 +386,8 @@
     </style>
 </head>
 <body>
+    <div class="connection-status" id="connectionStatus">🔴 Disconnected</div>
+    
     <div class="container">
         <div class="header">
             <h1>Wedding Quiz</h1>
@@ -326,14 +395,29 @@
         </div>
 
         <div class="main-content">
-            <!-- Role Selection Screen -->
-            <div id="roleSelection" class="role-selection">
-                <h2>Choose Your Role</h2>
-                <div class="role-buttons">
-                    <button class="role-btn" onclick="selectRole('partnerA')">Partner A</button>
-                    <button class="role-btn partner-b" onclick="selectRole('partnerB')">Partner B</button>
-                    <button class="role-btn admin-btn" onclick="selectRole('admin')">Admin/Display</button>
+            <!-- Setup Screen -->
+            <div id="setupScreen" class="setup-screen">
+                <div class="room-section">
+                    <h3>Create or Join Game Room</h3>
+                    <div class="room-input">
+                        <input type="text" id="roomCodeInput" placeholder="Enter Room Code (e.g. LOVE2024)" maxlength="20">
+                        <button class="action-btn" onclick="joinRoom()">Join Room</button>
+                    </div>
+                    <p style="color: #666; margin-top: 15px;">
+                        💡 Tip: Create a unique room code and share it with your partner and the display screen
+                    </p>
                 </div>
+
+                <div id="roleSelection" style="display: none;">
+                    <h3>Choose Your Role</h3>
+                    <div class="role-buttons">
+                        <button class="role-btn" onclick="selectRole('partnerA')">Partner A</button>
+                        <button class="role-btn partner-b" onclick="selectRole('partnerB')">Partner B</button>
+                        <button class="role-btn admin-btn" onclick="selectRole('admin')">Admin/Display</button>
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
             </div>
 
             <!-- Question Screen -->
@@ -394,6 +478,7 @@
     </div>
 
     <script>
+        // Questions array
         const questions = [
             "Pineapple on pizza",
             "Waking up early on weekends",
@@ -412,85 +497,188 @@
             "Taking selfies"
         ];
 
+        // Game state
         let gameState = {
-            currentQuestion: 0,
-            partnerAAnswers: [],
-            partnerBAnswers: [],
+            roomCode: null,
             userRole: null,
-            matches: 0
+            isConnected: false
         };
 
-        function selectRole(role) {
-            gameState.userRole = role;
-            document.getElementById('roleSelection').style.display = 'none';
-            
-            if (role === 'admin') {
-                document.getElementById('adminScreen').style.display = 'block';
-                showAdminQuestion();
+        // Simple real-time database using localStorage + periodic sync
+        // This creates a basic shared state that works across browser tabs/windows
+        let syncInterval;
+        let roomData = {};
+
+        function initializeRoomData() {
+            return {
+                currentQuestion: 0,
+                partnerAAnswers: [],
+                partnerBAnswers: [],
+                matches: 0,
+                gameStarted: false,
+                gameCompleted: false
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            gameState.isConnected = connected;
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'connection-status connected';
             } else {
-                document.getElementById('questionScreen').style.display = 'block';
-                showQuestion();
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'connection-status disconnected';
             }
         }
 
-        function showQuestion() {
-            if (gameState.currentQuestion >= questions.length) {
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function saveRoomData() {
+            if (gameState.roomCode) {
+                localStorage.setItem(`weddingQuiz_${gameState.roomCode}`, JSON.stringify(roomData));
+            }
+        }
+
+        function loadRoomData() {
+            if (gameState.roomCode) {
+                const saved = localStorage.getItem(`weddingQuiz_${gameState.roomCode}`);
+                if (saved) {
+                    roomData = JSON.parse(saved);
+                } else {
+                    roomData = initializeRoomData();
+                }
+            }
+        }
+
+        function syncRoomData() {
+            if (!gameState.roomCode) return;
+            
+            try {
+                loadRoomData();
+                updateUI();
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('Sync error:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function startSync() {
+            if (syncInterval) clearInterval(syncInterval);
+            syncInterval = setInterval(syncRoomData, 1000); // Sync every second
+        }
+
+        function stopSync() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+            }
+        }
+
+        function joinRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if (!roomCode) {
+                showError('Please enter a room code');
                 return;
             }
 
-            document.getElementById('questionNumber').textContent = gameState.currentQuestion + 1;
-            document.getElementById('questionText').textContent = questions[gameState.currentQuestion];
-            document.getElementById('waitingMessage').style.display = 'none';
+            gameState.roomCode = roomCode;
+            loadRoomData();
+            saveRoomData();
             
-            // Show answer buttons
-            const buttons = document.querySelectorAll('.answer-btn');
-            buttons.forEach(btn => btn.style.display = 'inline-block');
+            document.getElementById('roleSelection').style.display = 'block';
+            startSync();
+            updateConnectionStatus(true);
         }
 
-        function showAdminQuestion() {
-            if (gameState.currentQuestion >= questions.length) {
+        function selectRole(role) {
+            gameState.userRole = role;
+            document.getElementById('setupScreen').style.display = 'none';
+            
+            if (role === 'admin') {
+                document.getElementById('adminScreen').style.display = 'block';
+                if (!roomData.gameStarted) {
+                    roomData.gameStarted = true;
+                    saveRoomData();
+                }
+            } else {
+                document.getElementById('questionScreen').style.display = 'block';
+            }
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            if (gameState.userRole === 'admin') {
+                updateAdminUI();
+            } else if (gameState.userRole === 'partnerA' || gameState.userRole === 'partnerB') {
+                updatePartnerUI();
+            }
+        }
+
+        function updatePartnerUI() {
+            if (roomData.gameCompleted) {
+                // Show completion message
+                document.getElementById('questionScreen').innerHTML = `
+                    <div class="final-results">
+                        <h2>🎉 Quiz Complete! 🎉</h2>
+                        <p>Check the display screen for final results!</p>
+                        <button class="next-btn" onclick="location.reload()">New Game</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentQ = roomData.currentQuestion;
+            if (currentQ >= questions.length) return;
+
+            document.getElementById('questionNumber').textContent = currentQ + 1;
+            document.getElementById('questionText').textContent = questions[currentQ];
+
+            // Check if user has already answered this question
+            const userAnswers = gameState.userRole === 'partnerA' ? roomData.partnerAAnswers : roomData.partnerBAnswers;
+            const hasAnswered = userAnswers[currentQ] !== undefined;
+
+            const buttons = document.querySelectorAll('.answer-btn');
+            const waitingMsg = document.getElementById('waitingMessage');
+
+            if (hasAnswered) {
+                buttons.forEach(btn => btn.style.display = 'none');
+                waitingMsg.style.display = 'block';
+            } else {
+                buttons.forEach(btn => btn.style.display = 'inline-block');
+                waitingMsg.style.display = 'none';
+            }
+        }
+
+        function updateAdminUI() {
+            const currentQ = roomData.currentQuestion;
+            
+            if (currentQ >= questions.length || roomData.gameCompleted) {
                 showFinalResults();
                 return;
             }
 
-            document.getElementById('adminQuestionNumber').textContent = gameState.currentQuestion + 1;
-            document.getElementById('adminQuestionText').textContent = questions[gameState.currentQuestion];
-            document.getElementById('adminWaiting').style.display = 'block';
-            document.getElementById('adminResults').style.display = 'none';
-            document.getElementById('matchResult').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'none';
-        }
+            document.getElementById('adminQuestionNumber').textContent = currentQ + 1;
+            document.getElementById('adminQuestionText').textContent = questions[currentQ];
 
-        function submitAnswer(answer) {
-            const role = gameState.userRole;
-            
-            if (role === 'partnerA') {
-                gameState.partnerAAnswers[gameState.currentQuestion] = answer;
-            } else if (role === 'partnerB') {
-                gameState.partnerBAnswers[gameState.currentQuestion] = answer;
-            }
-
-            // Hide answer buttons and show waiting message
-            const buttons = document.querySelectorAll('.answer-btn');
-            buttons.forEach(btn => btn.style.display = 'none');
-            document.getElementById('waitingMessage').style.display = 'block';
-
-            // Check if admin screen should update
-            updateAdminDisplay();
-        }
-
-        function updateAdminDisplay() {
-            const currentQ = gameState.currentQuestion;
-            const hasPartnerA = gameState.partnerAAnswers[currentQ] !== undefined;
-            const hasPartnerB = gameState.partnerBAnswers[currentQ] !== undefined;
+            const hasPartnerA = roomData.partnerAAnswers[currentQ] !== undefined;
+            const hasPartnerB = roomData.partnerBAnswers[currentQ] !== undefined;
 
             if (hasPartnerA && hasPartnerB) {
-                // Both answered, show results on admin screen
                 document.getElementById('adminWaiting').style.display = 'none';
                 document.getElementById('adminResults').style.display = 'grid';
                 
-                const partnerAAnswer = gameState.partnerAAnswers[currentQ];
-                const partnerBAnswer = gameState.partnerBAnswers[currentQ];
+                const partnerAAnswer = roomData.partnerAAnswers[currentQ];
+                const partnerBAnswer = roomData.partnerBAnswers[currentQ];
                 
                 document.getElementById('partnerAAnswer').textContent = partnerAAnswer ? "I Like It! 👍" : "I Don't Like It 👎";
                 document.getElementById('partnerAAnswer').className = `answer-display ${partnerAAnswer ? 'like-answer' : 'dislike-answer'}`;
@@ -498,50 +686,77 @@
                 document.getElementById('partnerBAnswer').textContent = partnerBAnswer ? "I Like It! 👍" : "I Don't Like It 👎";
                 document.getElementById('partnerBAnswer').className = `answer-display ${partnerBAnswer ? 'like-answer' : 'dislike-answer'}`;
                 
-                // Show match result
                 const isMatch = partnerAAnswer === partnerBAnswer;
-                if (isMatch) {
-                    gameState.matches++;
-                }
-                
                 const matchElement = document.getElementById('matchResult');
                 matchElement.style.display = 'block';
                 matchElement.textContent = isMatch ? "🎉 It's a Match!" : "💔 No Match";
                 matchElement.className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
                 
                 document.getElementById('nextBtn').style.display = 'inline-block';
+            } else {
+                document.getElementById('adminWaiting').style.display = 'block';
+                document.getElementById('adminResults').style.display = 'none';
+                document.getElementById('matchResult').style.display = 'none';
+                document.getElementById('nextBtn').style.display = 'none';
             }
+        }
+
+        function submitAnswer(answer) {
+            const currentQ = roomData.currentQuestion;
+            
+            if (gameState.userRole === 'partnerA') {
+                roomData.partnerAAnswers[currentQ] = answer;
+            } else if (gameState.userRole === 'partnerB') {
+                roomData.partnerBAnswers[currentQ] = answer;
+            }
+
+            // Check for match and update count
+            if (roomData.partnerAAnswers[currentQ] !== undefined && roomData.partnerBAnswers[currentQ] !== undefined) {
+                if (roomData.partnerAAnswers[currentQ] === roomData.partnerBAnswers[currentQ]) {
+                    // Only increment if this is a new match (prevent double counting)
+                    const previousMatches = roomData.matches;
+                    let matchCount = 0;
+                    for (let i = 0; i <= currentQ; i++) {
+                        if (roomData.partnerAAnswers[i] !== undefined && roomData.partnerBAnswers[i] !== undefined) {
+                            if (roomData.partnerAAnswers[i] === roomData.partnerBAnswers[i]) {
+                                matchCount++;
+                            }
+                        }
+                    }
+                    roomData.matches = matchCount;
+                }
+            }
+
+            saveRoomData();
+            updateUI();
         }
 
         function nextQuestion() {
-            gameState.currentQuestion++;
+            roomData.currentQuestion++;
             
-            if (gameState.currentQuestion >= questions.length) {
-                showFinalResults();
-                return;
+            if (roomData.currentQuestion >= questions.length) {
+                roomData.gameCompleted = true;
             }
-
-            // Reset for next question
-            showAdminQuestion();
             
-            // Update question screens for partners
-            showQuestion();
+            saveRoomData();
+            updateUI();
         }
 
         function showFinalResults() {
+            const compatibility = Math.round((roomData.matches / questions.length) * 100);
+            
             document.getElementById('adminScreen').innerHTML = `
                 <div class="final-results">
                     <h2>🎉 Quiz Complete! 🎉</h2>
-                    <div class="compatibility-score">${Math.round((gameState.matches / questions.length) * 100)}%</div>
-                    <p>You matched on <strong>${gameState.matches}</strong> out of <strong>${questions.length}</strong> questions!</p>
-                    <p>${getCompatibilityMessage()}</p>
+                    <div class="compatibility-score">${compatibility}%</div>
+                    <p>You matched on <strong>${roomData.matches}</strong> out of <strong>${questions.length}</strong> questions!</p>
+                    <p>${getCompatibilityMessage(compatibility)}</p>
                     <button class="next-btn" onclick="restartQuiz()">Start New Quiz</button>
                 </div>
             `;
         }
 
-        function getCompatibilityMessage() {
-            const percentage = (gameState.matches / questions.length) * 100;
+        function getCompatibilityMessage(percentage) {
             if (percentage >= 80) return "You two are perfectly in sync! 💕";
             if (percentage >= 60) return "Great compatibility! You know each other well! 😊";
             if (percentage >= 40) return "Some differences make life interesting! 🌟";
@@ -549,23 +764,27 @@
         }
 
         function restartQuiz() {
-            // Reset game state
-            gameState = {
-                currentQuestion: 0,
-                partnerAAnswers: [],
-                partnerBAnswers: [],
-                userRole: null,
-                matches: 0
-            };
-
-            // Show role selection
-            document.getElementById('roleSelection').style.display = 'block';
-            document.getElementById('questionScreen').style.display = 'none';
-            document.getElementById('adminScreen').style.display = 'none';
+            roomData = initializeRoomData();
+            saveRoomData();
+            location.reload();
         }
 
-        // Initialize the game
-        showQuestion();
+        // Initialize connection status
+        updateConnectionStatus(false);
+
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            stopSync();
+        });
+
+        // Handle page visibility change (pause sync when tab is hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopSync();
+            } else if (gameState.roomCode) {
+                startSync();
+            }
+        });
     </script>
 </body>
 </html>
