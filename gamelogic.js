@@ -1,4 +1,4 @@
-// gamelogic.js - Core Game Logic
+// gamelogic.js - Core Game Logic (Updated for Swipe)
 
 // Global game state
 let gameState = {
@@ -110,7 +110,8 @@ function selectRole(role) {
     document.getElementById('setupScreen').style.display = 'none';
     
     // Hide subtitle for all roles
-    document.getElementById('mainSubtitle').style.display = 'none';
+    const subtitle = document.getElementById('mainSubtitle');
+    if (subtitle) subtitle.style.display = 'none';
     
     if (role === 'admin') {
         // Apply admin mode styling
@@ -118,7 +119,6 @@ function selectRole(role) {
         document.getElementById('mainHeader').classList.add('admin-mode');
         document.getElementById('mainContent').classList.add('admin-mode');
         document.getElementById('mainTitle').classList.add('admin-mode');
-        document.getElementById('mainSubtitle').classList.add('admin-mode');
         
         document.getElementById('adminScreen').style.display = 'flex';
         document.getElementById('adminScreen').classList.add('admin-mode');
@@ -128,7 +128,15 @@ function selectRole(role) {
             saveRoomData();
         }
     } else {
+        // Player role (fanny or nelson)
         document.getElementById('questionScreen').style.display = 'block';
+        
+        // Initialize swipe functionality for players
+        setTimeout(() => {
+            if (typeof initializeSwipe === 'function') {
+                initializeSwipe();
+            }
+        }, 100);
     }
     
     updateUI();
