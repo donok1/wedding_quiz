@@ -49,15 +49,15 @@
                 </div>
                 <div class="question" id="questionText"></div>
                 
-                <!-- Swipe Card Container (will be populated by swipe.js) -->
-                <div class="swipe-container" id="swipeContainer" style="display: none;">
+                <!-- Swipe Card Container (dynamically populated by swipe.js) -->
+                <div class="swipe-container hidden" id="swipeContainer">
                     <!-- Swipe card will be inserted here by JavaScript -->
                 </div>
 
-                <!-- Traditional answer buttons (hidden by default, fallback for admin) -->
-                <div class="answer-buttons" id="answerButtons">
-                    <button class="answer-btn like-btn" onclick="submitAnswer(true)">J'aime ! 🌟</button>
+                <!-- Traditional answer buttons (for non-touch devices) -->
+                <div class="answer-buttons hidden" id="answerButtons">
                     <button class="answer-btn dislike-btn" onclick="submitAnswer(false)">Je n'aime pas 🚫</button>
+                    <button class="answer-btn like-btn" onclick="submitAnswer(true)">J'aime ! 🌟</button>
                 </div>
 
                 <div id="waitingMessage" class="waiting" style="display: none;">
