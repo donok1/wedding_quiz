@@ -44,14 +44,12 @@ body::before {
 }
 
 .container.admin-mode {
-    max-width: 1600px;
-    width: 100%;
+    width: 1600px;
     height: 800px;
+    max-width: 1600px;
     max-height: 800px;
-    display: flex;
-    flex-direction: column;
-    overflow: visible; /* allow child overflow, scroll handled in admin-screen */
-    min-height: 0;
+    overflow: hidden;
+    position: relative;
 }
 
 .container::before {
@@ -72,18 +70,6 @@ body::before {
     z-index: 1;
 }
 
-#nextBtn.next-btn {
-    flex-shrink: 0;
-    margin-bottom: 15px;
-    position: relative;
-    z-index: 2;
-}
-
-#finalResults {
-    flex-shrink: 0;
-    min-height: 0;
-}
-
 /* === HEADER STYLES === */
 .header {
     background: linear-gradient(45deg, #66BB6A 0%, #4CAF50 50%, #388E3C 100%);
@@ -95,12 +81,13 @@ body::before {
 }
 
 .header.admin-mode {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
     padding: 15px 20px;
-    flex-shrink: 0;
-    height: 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    text-align: center;
 }
 
 .header::before {
@@ -121,6 +108,18 @@ body::before {
     animation: float 3s ease-in-out infinite reverse;
 }
 
+.header.admin-mode::before {
+    font-size: 20px;
+    top: 10px;
+    left: 20px;
+}
+
+.header.admin-mode::after {
+    font-size: 20px;
+    top: 10px;
+    right: 20px;
+}
+
 @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
@@ -134,8 +133,9 @@ h1 {
 }
 
 h1.admin-mode {
-    font-size: 1.4rem;
-    margin-bottom: 3px;
+    font-size: 1.2rem;
+    margin-bottom: 0;
+    line-height: 1;
 }
 
 .subtitle {
@@ -145,7 +145,7 @@ h1.admin-mode {
 }
 
 .subtitle.admin-mode {
-    font-size: 0.8rem;
+    display: none;
 }
 
 .room-indicator {
@@ -170,28 +170,14 @@ h1.admin-mode {
 }
 
 .main-content.admin-mode {
-    padding: 20px;
-    height: 720px;
-    min-height: 0;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    overflow: visible; /* let admin-screen scroll */
-}
-
-.admin-screen.admin-mode {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 20px; /* ensures bottom button is visible */
-}
-
-.admin-top-section {
-    flex-shrink: 0;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 15px 20px 20px 20px;
+    height: 730px;
+    overflow: hidden;
 }
 
 /* === SETUP SCREEN === */
@@ -304,8 +290,9 @@ input[type="text"]:focus {
 }
 
 .admin-screen.admin-mode {
-    display: flex;
-    flex-direction: column;
+    display: block;
+    position: relative;
+    width: 100%;
     height: 100%;
     overflow: hidden;
 }
@@ -321,14 +308,16 @@ input[type="text"]:focus {
 }
 
 .question-counter.admin-mode {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
     padding: 8px 15px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     font-size: 0.9rem;
-    flex-shrink: 0;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
+    line-height: 24px;
 }
 
 .question {
@@ -340,10 +329,17 @@ input[type="text"]:focus {
 }
 
 .question.admin-mode {
-    flex-shrink: 0;
-    min-height: 80px;
-    max-height: 160px;
-    overflow-y: auto;
+    position: absolute;
+    top: 55px;
+    left: 20px;
+    right: 20px;
+    height: 150px;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    margin-bottom: 0;
+    text-align: center;
+    line-height: 1.2;
+    word-wrap: break-word;
+    padding: 20px;
 }
 
 /* === ANSWER BUTTONS === */
@@ -404,45 +400,46 @@ input[type="text"]:focus {
 }
 
 .admin-waiting {
+    position: absolute;
+    top: 220px;
+    left: 20px;
+    right: 20px;
+    height: 80px;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: #F57F17;
-    padding: 15px;
+    padding: 20px;
     background: linear-gradient(135deg, #FFF9C4, #FFF59D);
     border-radius: 15px;
-    margin: 10px 0;
-    flex-shrink: 0;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     font-weight: bold;
+    line-height: 40px;
 }
 
 /* === ADMIN STATUS === */
 .admin-top-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    flex-shrink: 0;
-    height: 40px;
+    position: absolute;
+    top: 5px;
+    right: 20px;
+    left: 350px;
+    height: 30px;
 }
 
 .admin-status {
     display: flex;
     gap: 15px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    justify-content: flex-end;
 }
 
 .player-status {
-    background: rgba(255, 255, 255, 0.8);
-    padding: 6px 12px;
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 10px;
+    border-radius: 12px;
     border: 2px solid transparent;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    height: 25px;
 }
 
 .fanny-status {
@@ -466,9 +463,9 @@ input[type="text"]:focus {
 }
 
 .status-indicator {
-    padding: 3px 6px;
-    border-radius: 10px;
-    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 0.7rem;
     font-weight: bold;
 }
 
@@ -493,22 +490,25 @@ input[type="text"]:focus {
 }
 
 /* === RESULTS DISPLAY === */
-.results-display,
-#adminResults {
-    flex-shrink: 0;
-    min-height: 0;
+.results-display {
+    position: absolute;
+    top: 220px;
+    left: 20px;
+    right: 20px;
+    height: 200px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
 }
 
 .partner-result {
     background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
-    padding: 20px;
+    padding: 25px;
     border-radius: 20px;
     border: 3px solid transparent;
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     height: 100%;
+    position: relative;
 }
 
 .fanny-result {
@@ -520,16 +520,26 @@ input[type="text"]:focus {
 }
 
 .partner-name {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: bold;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
 }
 
 .answer-display {
-    font-size: 1.4rem;
-    padding: 15px;
-    border-radius: 20px;
+    position: absolute;
+    top: 70px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    font-size: 1.5rem;
+    padding: 20px;
+    border-radius: 15px;
     font-weight: bold;
+    line-height: 1.2;
 }
 
 .like-answer {
@@ -543,11 +553,16 @@ input[type="text"]:focus {
 }
 
 /* === MATCH INDICATOR === */
-.match-indicator,
-#matchResult {
-    flex-shrink: 0;
-    min-height: 0;
-    margin-bottom: 10px;
+.match-indicator {
+    position: absolute;
+    top: 440px;
+    left: 20px;
+    right: 20px;
+    height: 80px;
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 80px;
 }
 
 .match {
@@ -560,45 +575,58 @@ input[type="text"]:focus {
 
 /* === NEXT BUTTON === */
 .next-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     background: linear-gradient(45deg, #66BB6A, #4CAF50);
     color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 15px 40px;
     border-radius: 20px;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
-    margin: 10px auto 0;
     transition: all 0.3s ease;
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-    display: block;
-    flex-shrink: 0;
-    height: 45px;
+    height: 50px;
+    min-width: 200px;
 }
 
 .next-btn:hover {
-    transform: translateY(-2px);
+    transform: translate(-50%, -2px);
     box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
 }
 
 /* === FINAL RESULTS === */
 .final-results {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     text-align: center;
-    padding: 30px;
+    padding: 40px;
     background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
     color: white;
     border-radius: 20px;
+    margin: 0;
+}
+
+.final-results h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+}
+
+.final-results p {
+    font-size: 1.4rem;
     margin: 20px 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
 }
 
 .compatibility-score {
-    font-size: 3rem;
+    font-size: 4rem;
     font-weight: bold;
-    margin: 20px 0;
+    margin: 30px 0;
 }
 
 /* === CONNECTION STATUS === */
@@ -635,24 +663,6 @@ input[type="text"]:focus {
     margin: 25px 0;
 }
 
-
-@media (max-width: 1024px) {
-    .container.admin-mode {
-        width: 100vw;
-        max-width: none;
-        height: 95vh;
-        max-height: none;
-    }
-    .main-content.admin-mode {
-        height: auto;
-        max-height: none;
-    }
-    .admin-screen.admin-mode {
-        max-height: 80vh;
-        height: auto;
-    }
-}
-
 /* === RESPONSIVE DESIGN === */
 @media (max-width: 768px) {
     .role-buttons {
@@ -682,23 +692,20 @@ input[type="text"]:focus {
         font-size: 1.6rem;
     }
 
-    .question.admin-mode {
-        font-size: 2rem;
-    }
-
     .container {
         margin: 10px;
     }
 
+    /* Admin mode should NOT be responsive - keep fixed size */
     .container.admin-mode {
-        width: 95vw;
-        height: 95vh;
-        max-width: none;
-        max-height: none;
+        width: 1600px;
+        height: 800px;
+        max-width: 1600px;
+        max-height: 800px;
     }
 
     .admin-status {
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
     }
 }
