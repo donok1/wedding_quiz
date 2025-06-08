@@ -36,11 +36,13 @@ body::before {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 25px;
     box-shadow: 0 20px 60px rgba(46, 125, 50, 0.2);
-    max-width: 900px;
-    width: 100%;
+    max-width: 400px;
+    width: 95%;
+    min-height: 100vh;
     overflow: hidden;
     position: relative;
     border: 3px solid rgba(76, 175, 80, 0.3);
+    margin: 0;
 }
 
 .container.admin-mode {
@@ -50,6 +52,7 @@ body::before {
     max-height: 800px;
     overflow: hidden;
     position: relative;
+    min-height: auto;
 }
 
 .container::before {
@@ -74,7 +77,7 @@ body::before {
 .header {
     background: linear-gradient(45deg, #66BB6A 0%, #4CAF50 50%, #388E3C 100%);
     color: white;
-    padding: 35px;
+    padding: 20px 15px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -126,8 +129,8 @@ body::before {
 }
 
 h1 {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     font-family: 'Georgia', serif;
 }
@@ -139,12 +142,6 @@ h1.admin-mode {
 }
 
 .subtitle {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    font-style: italic;
-}
-
-.subtitle.admin-mode {
     display: none;
 }
 
@@ -163,10 +160,11 @@ h1.admin-mode {
 
 /* === MAIN CONTENT === */
 .main-content {
-    padding: 40px;
+    padding: 20px 15px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: calc(100vh - 140px);
 }
 
 .main-content.admin-mode {
@@ -178,6 +176,7 @@ h1.admin-mode {
     padding: 15px 20px 20px 20px;
     height: 730px;
     overflow: hidden;
+    min-height: auto;
 }
 
 /* === SETUP SCREEN === */
@@ -299,12 +298,14 @@ input[type="text"]:focus {
 
 .question-counter {
     background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
-    padding: 18px;
-    border-radius: 25px;
-    margin-bottom: 35px;
+    padding: 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
     font-weight: bold;
     color: #2E7D32;
     border: 2px solid rgba(76, 175, 80, 0.3);
+    text-align: center;
+    font-size: 1rem;
 }
 
 .question-counter.admin-mode {
@@ -321,11 +322,13 @@ input[type="text"]:focus {
 }
 
 .question {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #2E7D32;
-    margin-bottom: 45px;
+    margin-bottom: 30px;
     line-height: 1.4;
     font-weight: bold;
+    text-align: center;
+    padding: 0 10px;
 }
 
 .question.admin-mode {
@@ -342,13 +345,129 @@ input[type="text"]:focus {
     padding: 20px;
 }
 
+/* === SWIPE CARD === */
+.swipe-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    margin: 40px 0;
+    perspective: 1000px;
+}
+
+.swipe-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #E8F5E8 0%, #C8E6C9 100%);
+    border-radius: 25px;
+    border: 3px solid rgba(76, 175, 80, 0.3);
+    box-shadow: 0 15px 40px rgba(46, 125, 50, 0.2);
+    cursor: grab;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.swipe-card:active {
+    cursor: grabbing;
+}
+
+.swipe-card.swiping {
+    transition: none;
+}
+
+.swipe-card.like-preview {
+    border-color: #4CAF50;
+    background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+    transform: rotate(5deg) scale(1.02);
+    box-shadow: 0 20px 50px rgba(76, 175, 80, 0.4);
+}
+
+.swipe-card.dislike-preview {
+    border-color: #F44336;
+    background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
+    transform: rotate(-5deg) scale(1.02);
+    box-shadow: 0 20px 50px rgba(244, 67, 54, 0.4);
+}
+
+.card-content {
+    text-align: center;
+    pointer-events: none;
+}
+
+.card-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+}
+
+.card-text {
+    font-size: 1.3rem;
+    color: #2E7D32;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.card-instruction {
+    font-size: 0.9rem;
+    color: #666;
+    opacity: 0.8;
+}
+
+.like-preview .card-icon {
+    transform: scale(1.2);
+}
+
+.dislike-preview .card-icon {
+    transform: scale(1.2);
+}
+
+/* Swipe indicators */
+.swipe-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+    pointer-events: none;
+}
+
+.swipe-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.like-hint {
+    color: #4CAF50;
+}
+
+.dislike-hint {
+    color: #F44336;
+}
+
+.swipe-card.like-preview .like-hint,
+.swipe-card.dislike-preview .dislike-hint {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
 /* === ANSWER BUTTONS === */
 .answer-buttons {
-    display: flex;
-    gap: 35px;
-    justify-content: center;
-    margin: 45px 0;
-    flex-wrap: wrap;
+    display: none;
 }
 
 .answer-btn {
@@ -390,13 +509,21 @@ input[type="text"]:focus {
     background: linear-gradient(135deg, #FFF9C4, #FFF59D);
     border: 3px solid #FBC02D;
     border-radius: 20px;
-    padding: 35px;
-    margin: 35px 0;
+    padding: 25px 15px;
+    margin: 25px 0;
+    text-align: center;
 }
 
 .waiting h3 {
     color: #F57F17;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.waiting p {
+    color: #F57F17;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 .admin-waiting {
@@ -665,35 +792,102 @@ input[type="text"]:focus {
 
 /* === RESPONSIVE DESIGN === */
 @media (max-width: 768px) {
+    body {
+        padding: 0;
+        align-items: stretch;
+    }
+
+    .container {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        width: 100%;
+        max-width: 100%;
+        min-height: 100vh;
+    }
+
+    .header {
+        border-radius: 0;
+        padding: 15px 10px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .main-content {
+        padding: 15px 10px;
+        min-height: calc(100vh - 120px);
+    }
+
+    .question {
+        font-size: 1.3rem;
+        padding: 0 5px;
+    }
+
+    .swipe-container {
+        height: 350px;
+        margin: 30px 0;
+    }
+
+    .swipe-card {
+        padding: 25px 15px;
+    }
+
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    .card-text {
+        font-size: 1.1rem;
+    }
+
+    .card-instruction {
+        font-size: 0.8rem;
+    }
+
     .role-buttons {
         flex-direction: column;
         align-items: center;
+        gap: 15px;
     }
 
-    .answer-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .results-display, .admin-status {
-        grid-template-columns: 1fr;
-        gap: 20px;
+    .role-btn, .action-btn {
+        padding: 18px 35px;
+        font-size: 1.1rem;
+        width: 100%;
+        max-width: 280px;
     }
 
     .room-input {
         flex-direction: column;
+        gap: 10px;
     }
 
-    h1 {
-        font-size: 2.2rem;
+    input[type="text"] {
+        width: 100%;
+        min-width: auto;
+        padding: 15px;
+        font-size: 1.1rem;
     }
 
-    .question {
-        font-size: 1.6rem;
+    .room-section {
+        padding: 20px 15px;
+        margin-bottom: 25px;
     }
 
-    .container {
-        margin: 10px;
+    .waiting {
+        padding: 20px 10px;
+        margin: 20px 0;
+    }
+
+    .waiting h3 {
+        font-size: 1.1rem;
+    }
+
+    .waiting p {
+        font-size: 0.85rem;
     }
 
     /* Admin mode should NOT be responsive - keep fixed size */
@@ -702,6 +896,9 @@ input[type="text"]:focus {
         height: 800px;
         max-width: 1600px;
         max-height: 800px;
+        border-radius: 25px;
+        border: 3px solid rgba(76, 175, 80, 0.3);
+        min-height: auto;
     }
 
     .admin-status {
