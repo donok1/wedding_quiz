@@ -45,12 +45,13 @@ body::before {
 
 .container.admin-mode {
     max-width: 1600px;
-    width: 1600px;
+    width: 100%;
     height: 800px;
     max-height: 800px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible; /* allow child overflow, scroll handled in admin-screen */
+    min-height: 0;
 }
 
 .container::before {
@@ -69,6 +70,18 @@ body::before {
     right: 20px;
     font-size: 2rem;
     z-index: 1;
+}
+
+#nextBtn.next-btn {
+    flex-shrink: 0;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 2;
+}
+
+#finalResults {
+    flex-shrink: 0;
+    min-height: 0;
 }
 
 /* === HEADER STYLES === */
@@ -159,10 +172,26 @@ h1.admin-mode {
 .main-content.admin-mode {
     padding: 20px;
     height: 720px;
-    overflow: hidden;
-    flex: 1;
+    min-height: 0;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
+    overflow: visible; /* let admin-screen scroll */
+}
+
+.admin-screen.admin-mode {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 20px; /* ensures bottom button is visible */
+}
+
+.admin-top-section {
+    flex-shrink: 0;
 }
 
 /* === SETUP SCREEN === */
@@ -311,16 +340,10 @@ input[type="text"]:focus {
 }
 
 .question.admin-mode {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-    height: 140px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 10px;
     flex-shrink: 0;
-    line-height: 1.2;
+    min-height: 80px;
+    max-height: 160px;
+    overflow-y: auto;
 }
 
 /* === ANSWER BUTTONS === */
@@ -470,13 +493,10 @@ input[type="text"]:focus {
 }
 
 /* === RESULTS DISPLAY === */
-.results-display {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin: 10px 0;
+.results-display,
+#adminResults {
     flex-shrink: 0;
-    height: 180px;
+    min-height: 0;
 }
 
 .partner-result {
@@ -523,16 +543,11 @@ input[type="text"]:focus {
 }
 
 /* === MATCH INDICATOR === */
-.match-indicator {
-    margin: 10px 0;
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-align: center;
+.match-indicator,
+#matchResult {
     flex-shrink: 0;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-height: 0;
+    margin-bottom: 10px;
 }
 
 .match {
@@ -618,6 +633,24 @@ input[type="text"]:focus {
     border-radius: 15px;
     padding: 18px;
     margin: 25px 0;
+}
+
+
+@media (max-width: 1024px) {
+    .container.admin-mode {
+        width: 100vw;
+        max-width: none;
+        height: 95vh;
+        max-height: none;
+    }
+    .main-content.admin-mode {
+        height: auto;
+        max-height: none;
+    }
+    .admin-screen.admin-mode {
+        max-height: 80vh;
+        height: auto;
+    }
 }
 
 /* === RESPONSIVE DESIGN === */
