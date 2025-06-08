@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Touch Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .test-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .debug-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        
+        .question-text {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .swipe-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .swipe-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+            border-radius: 20px;
+            border: 3px solid #4caf50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            cursor: grab;
+            user-select: none;
+        }
+        
+        .swipe-card:active {
+            cursor: grabbing;
+        }
+        
+        .card-question {
+            font-size: 1.4rem;
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .card-instruction {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+        
+        .answer-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .answer-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 150px;
+        }
+        
+        .like-btn {
+            background: linear-gradient(45deg, #66bb6a, #4caf50);
+            color: white;
+        }
+        
+        .dislike-btn {
+            background: linear-gradient(45deg, #ff7043, #ff5722);
+            color: white;
+        }
+        
+        .like-btn:hover, .dislike-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Touch Detection Test</h1>
+        
+        <div class="debug-info" id="debugInfo">
+            Loading detection info...
+        </div>
+        
+        <div class="question-text" id="questionText">
+            Test Question: Do you like pizza?
+        </div>
+        
+        <div class="swipe-container" id="swipeContainer">
+            <div class="swipe-card" id="swipeCard">
+                <div class="card-question">Do you like pizza?</div>
+                <div class="card-instruction">👈 Je n'aime pas &nbsp;&nbsp;&nbsp;&nbsp; J'aime 👉</div>
+            </div>
+        </div>
+        
+        <div class="answer-buttons" id="answerButtons">
+            <button class="answer-btn dislike-btn" onclick="submitAnswer(false)">Je n'aime pas 🚫</button>
+            <button class="answer-btn like-btn" onclick="submitAnswer(true)">J'aime ! 🌟</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+        
+        <button onclick="toggleInterface()" style="margin-top: 10px; padding: 10px 20px;">
+            Force Toggle Interface
+        </button>
+    </div>
+
+    <script>
+        // Debug logging
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        // Touch detection
+        function detectTouchDevice() {
+            const tests = {
+                'ontouchstart in window': 'ontouchstart' in window,
+                'navigator.maxTouchPoints > 0': navigator.maxTouchPoints > 0,
+                'navigator.msMaxTouchPoints > 0': navigator.msMaxTouchPoints > 0,
+                'window.DocumentTouch': window.DocumentTouch && document instanceof DocumentTouch
+            };
+            
+            let isTouchDevice = false;
+            for (const [test, result] of Object.entries(tests)) {
+                log(`${test}: ${result}`);
+                if (result) isTouchDevice = true;
+            }
+            
+            return isTouchDevice;
+        }
+
+        // Interface management
+        let currentInterface = null;
+        
+        function showSwipeInterface() {
+            log('Showing swipe interface');
+            document.getElementById('questionText').classList.add('hidden');
+            document.getElementById('swipeContainer').classList.remove('hidden');
+            document.getElementById('answerButtons').classList.add('hidden');
+            currentInterface = 'swipe';
+        }
+        
+        function showButtonInterface() {
+            log('Showing button interface');
+            document.getElementById('questionText').classList.remove('hidden');
+            document.getElementById('swipeContainer').classList.add('hidden');
+            document.getElementById('answerButtons').classList.remove('hidden');
+            currentInterface = 'buttons';
+        }
+        
+        function toggleInterface() {
+            if (currentInterface === 'swipe') {
+                showButtonInterface();
+            } else {
+                showSwipeInterface();
+            }
+        }
+
+        // Swipe functionality
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        const swipeThreshold = 80;
+        
+        function initializeSwipe() {
+            const card = document.getElementById('swipeCard');
+            if (!card) return;
+            
+            log('Initializing swipe listeners');
+            
+            // Touch events
+            card.addEventListener('touchstart', handleStart, { passive: false });
+            document.addEventListener('touchmove', handleMove, { passive: false });
+            document.addEventListener('touchend', handleEnd);
+            
+            // Mouse events for testing
+            card.addEventListener('mousedown', handleStart);
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+            
+            card.addEventListener('dragstart', (e) => e.preventDefault());
+        }
+        
+        function handleStart(e) {
+            log(`Swipe start: ${e.type}`);
+            isDragging = true;
+            
+            const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+            startX = clientX;
+            currentX = clientX;
+            
+            e.preventDefault();
+        }
+        
+        function handleMove(e) {
+            if (!isDragging) return;
+            
+            const clientX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+            currentX = clientX;
+            
+            const deltaX = currentX - startX;
+            const card = document.getElementById('swipeCard');
+            
+            if (card) {
+                const rotation = deltaX * 0.1;
+                card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+                
+                // Visual feedback
+                if (Math.abs(deltaX) > swipeThreshold / 2) {
+                    if (deltaX > 0) {
+                        card.style.borderColor = '#4caf50';
+                        card.style.background = 'linear-gradient(135deg, #c8e6c9, #a5d6a7)';
+                    } else {
+                        card.style.borderColor = '#f44336';
+                        card.style.background = 'linear-gradient(135deg, #ffcdd2, #ef9a9a)';
+                    }
+                } else {
+                    card.style.borderColor = '#4caf50';
+                    card.style.background = 'linear-gradient(135deg, #e8f5e8, #c8e6c9)';
+                }
+            }
+            
+            e.preventDefault();
+        }
+        
+        function handleEnd(e) {
+            if (!isDragging) return;
+            
+            log(`Swipe end: ${e.type}`);
+            isDragging = false;
+            
+            const deltaX = currentX - startX;
+            const card = document.getElementById('swipeCard');
+            
+            if (Math.abs(deltaX) > swipeThreshold) {
+                const isLike = deltaX > 0;
+                log(`Swipe detected: ${isLike ? 'LIKE' : 'DISLIKE'} (distance: ${Math.abs(deltaX)}px)`);
+                submitAnswer(isLike);
+                
+                // Animate off screen
+                if (card) {
+                    const exitX = (isLike ? 1 : -1) * (window.innerWidth + 100);
+                    card.style.transition = 'transform 0.3s ease-out';
+                    card.style.transform = `translateX(${exitX}px) rotate(${(isLike ? 1 : -1) * 30}deg)`;
+                    
+                    setTimeout(() => {
+                        resetCard();
+                    }, 300);
+                }
+            } else {
+                log(`Swipe cancelled: distance ${Math.abs(deltaX)}px < threshold ${swipeThreshold}px`);
+                resetCard();
+            }
+        }
+        
+        function resetCard() {
+            const card = document.getElementById('swipeCard');
+            if (card) {
+                card.style.transition = 'transform 0.3s ease-out';
+                card.style.transform = 'translateX(0px) rotate(0deg)';
+                card.style.borderColor = '#4caf50';
+                card.style.background = 'linear-gradient(135deg, #e8f5e8, #c8e6c9)';
+                
+                setTimeout(() => {
+                    card.style.transition = '';
+                }, 300);
+            }
+        }
+        
+        function submitAnswer(answer) {
+            log(`Answer submitted: ${answer ? 'LIKE' : 'DISLIKE'}`);
+            // Here you would normally call your game logic
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, starting detection...');
+            
+            // Show detection results
+            const isTouchDevice = detectTouchDevice();
+            log(`Final result: ${isTouchDevice ? 'TOUCH DEVICE' : 'NON-TOUCH DEVICE'}`);
+            
+            document.getElementById('debugInfo').innerHTML = `
+                <strong>Device Detection:</strong><br>
+                Touch Device: ${isTouchDevice ? 'YES' : 'NO'}<br>
+                User Agent: ${navigator.userAgent.substring(0, 50)}...<br>
+                Max Touch Points: ${navigator.maxTouchPoints || 'undefined'}<br>
+                Screen: ${screen.width}x${screen.height}<br>
+                Viewport: ${window.innerWidth}x${window.innerHeight}
+            `;
+            
+            // Initialize appropriate interface
+            if (isTouchDevice) {
+                showSwipeInterface();
+                initializeSwipe();
+            } else {
+                showButtonInterface();
+            }
+            
+            log('Initialization complete');
+        });
+    </script>
+</body>
+</html>
