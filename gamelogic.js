@@ -1,4 +1,4 @@
-// gamelogic.js - Core Game Logic (Updated for Guests and Swipe)
+// gamelogic.js - Core Game Logic (Updated for Guests and Swipe) - FIXED
 
 // Global game state
 let gameState = {
@@ -15,16 +15,27 @@ let roomData = {};
 // Room management functions
 function saveRoomData() {
     if (gameState.roomCode) {
+        // ENSURE ALL ARRAYS EXIST before saving
+        if (!roomData.fannyAnswers) roomData.fannyAnswers = [];
+        if (!roomData.nelsonAnswers) roomData.nelsonAnswers = [];
+        if (!roomData.guestAnswers) roomData.guestAnswers = {};
+        if (!roomData.guestNames) roomData.guestNames = [];
+        if (!roomData.heartbeats) roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0, guests: {} };
+        if (!roomData.heartbeats.guests) roomData.heartbeats.guests = {};
+
         // Update heartbeat
         if (gameState.userRole === 'guest' && gameState.guestName) {
-            if (!roomData.heartbeats.guests) roomData.heartbeats.guests = {};
             roomData.heartbeats.guests[gameState.guestName] = Date.now();
         } else if (gameState.userRole && gameState.userRole !== 'guest') {
             roomData.heartbeats[gameState.userRole] = Date.now();
         }
         
         // Save to Firebase instead of localStorage
-        database.ref(`rooms/${gameState.roomCode}`).set(roomData);
+        if (typeof database !== 'undefined' && database) {
+            database.ref(`rooms/${gameState.roomCode}`).set(roomData);
+        } else {
+            console.error('Firebase database not initialized');
+        }
     }
 }
 
@@ -32,29 +43,57 @@ function loadRoomData() {
     if (gameState.roomCode) {
         // Firebase will handle this via real-time listener in startSync()
         // Initialize empty room data if needed
-        database.ref(`rooms/${gameState.roomCode}`).once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                roomData = data;
-            } else {
-                roomData = initializeRoomData();
-                saveRoomData();
-            }
-            
-            // Ensure all required objects exist
-            if (!roomData.heartbeats) {
-                roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0, guests: {} };
-            }
-            if (!roomData.heartbeats.guests) {
-                roomData.heartbeats.guests = {};
-            }
-            if (!roomData.guestAnswers) {
-                roomData.guestAnswers = {};
-            }
-            if (!roomData.guestNames) {
-                roomData.guestNames = [];
-            }
-        });
+        if (typeof database !== 'undefined' && database) {
+            database.ref(`rooms/${gameState.roomCode}`).once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    roomData = data;
+                } else {
+                    roomData = initializeRoomData();
+                    saveRoomData();
+                }
+                
+                // ENSURE ALL REQUIRED OBJECTS EXIST
+                ensureRoomDataIntegrity();
+            });
+        } else {
+            console.error('Firebase database not initialized');
+            roomData = initializeRoomData();
+        }
+    }
+}
+
+// NEW: Ensure all required data structures exist
+function ensureRoomDataIntegrity() {
+    if (!roomData.heartbeats) {
+        roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0, guests: {} };
+    }
+    if (!roomData.heartbeats.guests) {
+        roomData.heartbeats.guests = {};
+    }
+    if (!roomData.guestAnswers) {
+        roomData.guestAnswers = {};
+    }
+    if (!roomData.guestNames) {
+        roomData.guestNames = [];
+    }
+    if (!roomData.fannyAnswers) {
+        roomData.fannyAnswers = [];
+    }
+    if (!roomData.nelsonAnswers) {
+        roomData.nelsonAnswers = [];
+    }
+    if (typeof roomData.currentQuestion === 'undefined') {
+        roomData.currentQuestion = 0;
+    }
+    if (typeof roomData.matches === 'undefined') {
+        roomData.matches = 0;
+    }
+    if (typeof roomData.gameStarted === 'undefined') {
+        roomData.gameStarted = false;
+    }
+    if (typeof roomData.gameCompleted === 'undefined') {
+        roomData.gameCompleted = false;
     }
 }
 
@@ -104,7 +143,7 @@ function getConnectedGuestsCount() {
 function getGuestsAnsweredCount() {
     if (!roomData.guestAnswers) return 0;
     
-    const currentQ = roomData.currentQuestion;
+    const currentQ = roomData.currentQuestion || 0;
     let count = 0;
     
     for (const guestName in roomData.guestAnswers) {
@@ -123,6 +162,9 @@ function registerGuestName(name) {
         return false;
     }
     
+    // Ensure guestNames array exists
+    if (!roomData.guestNames) roomData.guestNames = [];
+    
     // Check if name is already taken
     if (roomData.guestNames.includes(trimmedName)) {
         showError('Ce nom est déjà pris. Veuillez choisir un autre nom.');
@@ -134,6 +176,7 @@ function registerGuestName(name) {
     if (!roomData.guestNames.includes(trimmedName)) {
         roomData.guestNames.push(trimmedName);
     }
+    if (!roomData.guestAnswers) roomData.guestAnswers = {};
     if (!roomData.guestAnswers[trimmedName]) {
         roomData.guestAnswers[trimmedName] = [];
     }
@@ -144,7 +187,10 @@ function registerGuestName(name) {
 
 // Answer submission
 function submitAnswer(answer) {
-    const currentQ = roomData.currentQuestion;
+    const currentQ = roomData.currentQuestion || 0;
+    
+    // Ensure arrays exist before submitting
+    ensureRoomDataIntegrity();
     
     if (gameState.userRole === 'fanny') {
         roomData.fannyAnswers[currentQ] = answer;
@@ -179,7 +225,7 @@ function submitAnswer(answer) {
 
 // Progress to next question
 function nextQuestion() {
-    roomData.currentQuestion++;
+    roomData.currentQuestion = (roomData.currentQuestion || 0) + 1;
     
     // Reset answers revealed state for the new question
     gameState.answersRevealed = false;
@@ -202,7 +248,6 @@ function joinRoom() {
 
     gameState.roomCode = roomCode;
     loadRoomData();
-    saveRoomData();
     
     document.getElementById('roleSelection').style.display = 'block';
     updateRoomIndicator();
@@ -237,6 +282,7 @@ function selectRole(role) {
         document.getElementById('adminScreen').style.display = 'flex';
         document.getElementById('adminScreen').classList.add('admin-mode');
         
+        // Ensure roomData exists before setting gameStarted
         if (!roomData.gameStarted) {
             roomData.gameStarted = true;
             saveRoomData();

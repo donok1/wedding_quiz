@@ -1,16 +1,21 @@
-// sync.js - Firebase Real-time Synchronization
+// sync.js - Firebase Real-time Synchronization - FIXED
+
 let syncInterval;
 let heartbeatInterval;
 let roomRef;
 let roomListener;
 
 function sendHeartbeat() {
-    if (gameState.userRole && gameState.roomCode) {
-        const heartbeatPath = `heartbeats/${gameState.userRole}`;
-        if (gameState.userRole === 'guest' && gameState.guestName) {
-            roomRef.child(`heartbeats/guests/${gameState.guestName}`).set(Date.now());
-        } else {
-            roomRef.child(heartbeatPath).set(Date.now());
+    if (gameState.userRole && gameState.roomCode && typeof database !== 'undefined' && database) {
+        try {
+            if (gameState.userRole === 'guest' && gameState.guestName) {
+                database.ref(`rooms/${gameState.roomCode}/heartbeats/guests/${gameState.guestName}`).set(Date.now());
+            } else {
+                database.ref(`rooms/${gameState.roomCode}/heartbeats/${gameState.userRole}`).set(Date.now());
+            }
+        } catch (error) {
+            console.error('Error sending heartbeat:', error);
+            updateConnectionStatus(false);
         }
     }
 }
@@ -19,6 +24,7 @@ function syncRoomData() {
     if (!gameState.roomCode) return;
     
     try {
+        // Data is updated via Firebase listener - just update UI and status
         updateUI();
         updatePlayerStatus();
         updateConnectionStatus(true);
@@ -36,17 +42,48 @@ function startSync() {
     heartbeatInterval = setInterval(sendHeartbeat, CONFIG.HEARTBEAT_INTERVAL);
     
     // Set up Firebase listener
-    if (gameState.roomCode) {
+    if (gameState.roomCode && typeof database !== 'undefined' && database) {
         roomRef = database.ref(`rooms/${gameState.roomCode}`);
         
         roomListener = roomRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                roomData = data;
-                updateUI();
-                updatePlayerStatus();
+            try {
+                const data = snapshot.val();
+                if (data) {
+                    // SAFELY UPDATE ROOM DATA
+                    roomData = data;
+                    
+                    // Ensure all required structures exist after receiving data
+                    if (!roomData.fannyAnswers) roomData.fannyAnswers = [];
+                    if (!roomData.nelsonAnswers) roomData.nelsonAnswers = [];
+                    if (!roomData.guestAnswers) roomData.guestAnswers = {};
+                    if (!roomData.guestNames) roomData.guestNames = [];
+                    if (!roomData.heartbeats) roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0, guests: {} };
+                    if (!roomData.heartbeats.guests) roomData.heartbeats.guests = {};
+                    if (typeof roomData.currentQuestion === 'undefined') roomData.currentQuestion = 0;
+                    if (typeof roomData.matches === 'undefined') roomData.matches = 0;
+                    if (typeof roomData.gameStarted === 'undefined') roomData.gameStarted = false;
+                    if (typeof roomData.gameCompleted === 'undefined') roomData.gameCompleted = false;
+                    
+                    // Update UI safely
+                    updateUI();
+                    updatePlayerStatus();
+                } else {
+                    // No data exists yet, initialize
+                    roomData = initializeRoomData();
+                    if (typeof saveRoomData === 'function') {
+                        saveRoomData();
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing Firebase data:', error);
+                updateConnectionStatus(false);
             }
+        }, (error) => {
+            console.error('Firebase listener error:', error);
+            updateConnectionStatus(false);
         });
+    } else {
+        console.error('Cannot start sync: Firebase database not available or no room code');
     }
 }
 
@@ -60,6 +97,12 @@ function stopSync() {
         heartbeatInterval = null;
     }
     if (roomRef && roomListener) {
-        roomRef.off('value', roomListener);
+        try {
+            roomRef.off('value', roomListener);
+        } catch (error) {
+            console.error('Error stopping Firebase listener:', error);
+        }
+        roomRef = null;
+        roomListener = null;
     }
 }

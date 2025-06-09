@@ -1,4 +1,4 @@
-// ui.js - User Interface Management (Updated for Guests and Swipe)
+// ui.js - User Interface Management (Updated for Guests and Swipe) - FIXED
 
 // Main UI update dispatcher
 function updateUI() {
@@ -38,13 +38,13 @@ function updatePartnerUI() {
     let hasAnswered = false;
 
     if (gameState.userRole === 'fanny') {
-        userAnswers = roomData.fannyAnswers;
+        userAnswers = roomData.fannyAnswers || [];
         hasAnswered = userAnswers[currentQ] !== undefined;
     } else if (gameState.userRole === 'nelson') {
-        userAnswers = roomData.nelsonAnswers;
+        userAnswers = roomData.nelsonAnswers || [];
         hasAnswered = userAnswers[currentQ] !== undefined;
     } else if (gameState.userRole === 'guest' && gameState.guestName) {
-        userAnswers = roomData.guestAnswers[gameState.guestName] || [];
+        userAnswers = (roomData.guestAnswers && roomData.guestAnswers[gameState.guestName]) || [];
         hasAnswered = userAnswers[currentQ] !== undefined;
     }
 
@@ -83,7 +83,27 @@ function updatePartnerUI() {
 
 // Update UI for admin screen
 function updateAdminUI() {
-    const currentQ = roomData.currentQuestion;
+    // SAFETY CHECKS - Ensure roomData and arrays exist
+    if (!roomData) {
+        console.warn('roomData is undefined');
+        return;
+    }
+
+    // Initialize arrays if they don't exist
+    if (!roomData.fannyAnswers) {
+        roomData.fannyAnswers = [];
+    }
+    if (!roomData.nelsonAnswers) {
+        roomData.nelsonAnswers = [];
+    }
+    if (!roomData.guestAnswers) {
+        roomData.guestAnswers = {};
+    }
+    if (!roomData.guestNames) {
+        roomData.guestNames = [];
+    }
+
+    const currentQ = roomData.currentQuestion || 0;
     
     if (currentQ >= CONFIG.TOTAL_QUESTIONS || roomData.gameCompleted) {
         showFinalResults();
@@ -91,8 +111,9 @@ function updateAdminUI() {
     }
 
     document.getElementById('adminQuestionNumber').textContent = currentQ + 1;
-    document.getElementById('adminQuestionText').textContent = questions[currentQ];
+    document.getElementById('adminQuestionText').textContent = questions[currentQ] || '';
 
+    // SAFE ARRAY ACCESS
     const hasFanny = roomData.fannyAnswers[currentQ] !== undefined;
     const hasNelson = roomData.nelsonAnswers[currentQ] !== undefined;
 
@@ -144,9 +165,11 @@ function updatePlayerStatus() {
     const fannyConnected = isPlayerConnected('fanny');
     const nelsonConnected = isPlayerConnected('nelson');
 
-    const currentQ = roomData.currentQuestion;
-    const fannyAnswered = roomData.fannyAnswers[currentQ] !== undefined;
-    const nelsonAnswered = roomData.nelsonAnswers[currentQ] !== undefined;
+    const currentQ = roomData.currentQuestion || 0;
+    
+    // SAFE ARRAY ACCESS
+    const fannyAnswered = (roomData.fannyAnswers && roomData.fannyAnswers[currentQ] !== undefined) || false;
+    const nelsonAnswered = (roomData.nelsonAnswers && roomData.nelsonAnswers[currentQ] !== undefined) || false;
 
     // Update compact status for Fanny
     let fannyStatusText = fannyConnected ? '🟢' : '🔴';
@@ -163,7 +186,7 @@ function updatePlayerStatus() {
     // Update guest status
     const connectedGuests = getConnectedGuestsCount();
     const answeredGuests = getGuestsAnsweredCount();
-    const totalGuests = roomData.guestNames ? roomData.guestNames.length : 0;
+    const totalGuests = (roomData.guestNames && roomData.guestNames.length) || 0;
     
     let guestStatusText = connectedGuests > 0 ? '🟢' : '🔴';
     guestStatusText += ` ${answeredGuests}/${connectedGuests}`;
@@ -174,10 +197,11 @@ function updatePlayerStatus() {
 
 // Show final results screen
 function showFinalResults() {
-    const compatibility = Math.round((roomData.matches / CONFIG.TOTAL_QUESTIONS) * 100);
+    const matches = roomData.matches || 0;
+    const compatibility = Math.round((matches / CONFIG.TOTAL_QUESTIONS) * 100);
     
     // Calculate guest statistics
-    const totalGuests = roomData.guestNames ? roomData.guestNames.length : 0;
+    const totalGuests = (roomData.guestNames && roomData.guestNames.length) || 0;
     let guestStatsHtml = '';
     
     if (totalGuests > 0) {
@@ -193,7 +217,7 @@ function showFinalResults() {
         <div class="final-results">
             <h2>🎉 Quiz Terminé ! 🎉</h2>
             <div class="compatibility-score">${compatibility}%</div>
-            <p>Fanny et Nelson sont d'accord sur <strong>${roomData.matches}</strong> questions sur <strong>${CONFIG.TOTAL_QUESTIONS}</strong> !</p>
+            <p>Fanny et Nelson sont d'accord sur <strong>${matches}</strong> questions sur <strong>${CONFIG.TOTAL_QUESTIONS}</strong> !</p>
             <p>${getCompatibilityMessage(compatibility)}</p>
             ${guestStatsHtml}
             <button class="next-btn" onclick="restartQuiz()">Nouveau Quiz</button>
