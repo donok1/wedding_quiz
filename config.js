@@ -1,4 +1,4 @@
-// config.js - Game Configuration
+// config.js - Game Configuration (Updated with Guest Support)
 
 // Questions array in French
 const questions = [
@@ -33,13 +33,16 @@ function initializeRoomData() {
         currentQuestion: 0,
         fannyAnswers: [],
         nelsonAnswers: [],
+        guestAnswers: {},      // Object to store guest answers: { guestName: [answers...] }
+        guestNames: [],        // Array of registered guest names
         matches: 0,
         gameStarted: false,
         gameCompleted: false,
         heartbeats: {
             fanny: 0,
             nelson: 0,
-            admin: 0
+            admin: 0,
+            guests: {}         // Object to store guest heartbeats: { guestName: timestamp }
         }
     };
 }

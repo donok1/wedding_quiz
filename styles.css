@@ -1,4 +1,4 @@
-/* styles.css */
+/* styles.css - Updated with Guest Support */
 * {
     margin: 0;
     padding: 0;
@@ -201,6 +201,29 @@ h1.admin-mode {
     flex-wrap: wrap;
 }
 
+/* === GUEST NAME INPUT === */
+.guest-name-input {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+#guestNameSection {
+    background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+    border: 2px solid rgba(255, 193, 7, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+    margin-top: 30px;
+}
+
+#guestNameSection h3 {
+    color: #F57F17;
+    margin-bottom: 15px;
+}
+
 input[type="text"] {
     padding: 18px;
     border: 3px solid #81C784;
@@ -217,6 +240,15 @@ input[type="text"]:focus {
     outline: none;
     border-color: #4CAF50;
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+#guestNameInput {
+    border-color: #FFB74D;
+}
+
+#guestNameInput:focus {
+    border-color: #FF9800;
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
 }
 
 /* === BUTTONS === */
@@ -273,6 +305,20 @@ input[type="text"]:focus {
 
 .nelson-btn::before {
     content: '🤵‍♂️';
+    margin-right: 10px;
+}
+
+.guest-btn {
+    background: linear-gradient(45deg, #FF9800, #FFB74D);
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+}
+
+.guest-btn:hover {
+    box-shadow: 0 12px 35px rgba(255, 152, 0, 0.5);
+}
+
+.guest-btn::before {
+    content: '🎉';
     margin-right: 10px;
 }
 
@@ -577,6 +623,10 @@ input[type="text"]:focus {
     border-color: #2196F3;
 }
 
+.guest-status {
+    border-color: #FF9800;
+}
+
 .status-header {
     font-weight: bold;
 }
@@ -587,6 +637,10 @@ input[type="text"]:focus {
 
 .nelson-name {
     color: #2196F3;
+}
+
+.guest-name {
+    color: #FF9800;
 }
 
 .status-indicator {
@@ -756,6 +810,20 @@ input[type="text"]:focus {
     margin: 30px 0;
 }
 
+.guest-stats {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.guest-stats h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #FFEB3B;
+}
+
 /* === CONNECTION STATUS === */
 .connection-status {
     position: fixed;
@@ -860,7 +928,7 @@ input[type="text"]:focus {
         max-width: 280px;
     }
 
-    .room-input {
+    .room-input, .guest-name-input {
         flex-direction: column;
         gap: 10px;
     }
@@ -875,6 +943,11 @@ input[type="text"]:focus {
     .room-section {
         padding: 20px 15px;
         margin-bottom: 25px;
+    }
+
+    #guestNameSection {
+        padding: 20px 15px;
+        margin-top: 20px;
     }
 
     .waiting {
@@ -905,4 +978,9 @@ input[type="text"]:focus {
         flex-direction: row;
         gap: 10px;
     }
+}
+
+/* === UTILITY CLASSES === */
+.hidden {
+    display: none !important;
 }

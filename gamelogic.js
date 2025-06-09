@@ -1,9 +1,10 @@
-// gamelogic.js - Core Game Logic (Updated for Swipe)
+// gamelogic.js - Core Game Logic (Updated for Guests and Swipe)
 
 // Global game state
 let gameState = {
     roomCode: null,
     userRole: null,
+    guestName: null,       // For guest users
     isConnected: false,
     lastHeartbeat: 0
 };
@@ -14,7 +15,10 @@ let roomData = {};
 function saveRoomData() {
     if (gameState.roomCode) {
         // Update heartbeat
-        if (gameState.userRole) {
+        if (gameState.userRole === 'guest' && gameState.guestName) {
+            if (!roomData.heartbeats.guests) roomData.heartbeats.guests = {};
+            roomData.heartbeats.guests[gameState.guestName] = Date.now();
+        } else if (gameState.userRole && gameState.userRole !== 'guest') {
             roomData.heartbeats[gameState.userRole] = Date.now();
         }
         localStorage.setItem(`weddingQuiz_${gameState.roomCode}`, JSON.stringify(roomData));
@@ -26,9 +30,18 @@ function loadRoomData() {
         const saved = localStorage.getItem(`weddingQuiz_${gameState.roomCode}`);
         if (saved) {
             roomData = JSON.parse(saved);
-            // Ensure heartbeats object exists
+            // Ensure all required objects exist
             if (!roomData.heartbeats) {
-                roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0 };
+                roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0, guests: {} };
+            }
+            if (!roomData.heartbeats.guests) {
+                roomData.heartbeats.guests = {};
+            }
+            if (!roomData.guestAnswers) {
+                roomData.guestAnswers = {};
+            }
+            if (!roomData.guestNames) {
+                roomData.guestNames = [];
             }
         } else {
             roomData = initializeRoomData();
@@ -38,10 +51,86 @@ function loadRoomData() {
 
 // Player connection management
 function isPlayerConnected(player) {
-    if (!roomData.heartbeats || !roomData.heartbeats[player]) return false;
-    const lastHeartbeat = roomData.heartbeats[player];
+    if (!roomData.heartbeats) return false;
+    
+    let lastHeartbeat;
+    if (player === 'guest') {
+        // For guests, check if any guest is connected
+        if (!roomData.heartbeats.guests) return false;
+        const guestHeartbeats = Object.values(roomData.heartbeats.guests);
+        if (guestHeartbeats.length === 0) return false;
+        lastHeartbeat = Math.max(...guestHeartbeats);
+    } else {
+        if (!roomData.heartbeats[player]) return false;
+        lastHeartbeat = roomData.heartbeats[player];
+    }
+    
     const now = Date.now();
     return (now - lastHeartbeat) < CONFIG.CONNECTION_TIMEOUT;
+}
+
+function isGuestConnected(guestName) {
+    if (!roomData.heartbeats || !roomData.heartbeats.guests || !roomData.heartbeats.guests[guestName]) {
+        return false;
+    }
+    const lastHeartbeat = roomData.heartbeats.guests[guestName];
+    const now = Date.now();
+    return (now - lastHeartbeat) < CONFIG.CONNECTION_TIMEOUT;
+}
+
+// Get connected guests count
+function getConnectedGuestsCount() {
+    if (!roomData.heartbeats || !roomData.heartbeats.guests) return 0;
+    
+    let count = 0;
+    for (const guestName in roomData.heartbeats.guests) {
+        if (isGuestConnected(guestName)) {
+            count++;
+        }
+    }
+    return count;
+}
+
+// Get guests who answered current question
+function getGuestsAnsweredCount() {
+    if (!roomData.guestAnswers) return 0;
+    
+    const currentQ = roomData.currentQuestion;
+    let count = 0;
+    
+    for (const guestName in roomData.guestAnswers) {
+        if (roomData.guestAnswers[guestName] && roomData.guestAnswers[guestName][currentQ] !== undefined) {
+            count++;
+        }
+    }
+    return count;
+}
+
+// Guest name registration
+function registerGuestName(name) {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+        showError('Veuillez entrer votre nom');
+        return false;
+    }
+    
+    // Check if name is already taken
+    if (roomData.guestNames.includes(trimmedName)) {
+        showError('Ce nom est déjà pris. Veuillez choisir un autre nom.');
+        return false;
+    }
+    
+    // Register the guest
+    gameState.guestName = trimmedName;
+    if (!roomData.guestNames.includes(trimmedName)) {
+        roomData.guestNames.push(trimmedName);
+    }
+    if (!roomData.guestAnswers[trimmedName]) {
+        roomData.guestAnswers[trimmedName] = [];
+    }
+    
+    saveRoomData();
+    return true;
 }
 
 // Answer submission
@@ -52,9 +141,14 @@ function submitAnswer(answer) {
         roomData.fannyAnswers[currentQ] = answer;
     } else if (gameState.userRole === 'nelson') {
         roomData.nelsonAnswers[currentQ] = answer;
+    } else if (gameState.userRole === 'guest' && gameState.guestName) {
+        if (!roomData.guestAnswers[gameState.guestName]) {
+            roomData.guestAnswers[gameState.guestName] = [];
+        }
+        roomData.guestAnswers[gameState.guestName][currentQ] = answer;
     }
 
-    // Check for match and update count
+    // Check for match between Fanny and Nelson and update count
     if (roomData.fannyAnswers[currentQ] !== undefined && roomData.nelsonAnswers[currentQ] !== undefined) {
         if (roomData.fannyAnswers[currentQ] === roomData.nelsonAnswers[currentQ]) {
             // Recalculate total matches to prevent double counting
@@ -107,6 +201,14 @@ function joinRoom() {
 // Role selection
 function selectRole(role) {
     gameState.userRole = role;
+    
+    if (role === 'guest') {
+        // Show guest name input
+        document.getElementById('guestNameSection').style.display = 'block';
+        return;
+    }
+    
+    // Hide setup screen for non-guest roles
     document.getElementById('setupScreen').style.display = 'none';
     
     // Hide subtitle for all roles
@@ -140,6 +242,31 @@ function selectRole(role) {
     }
     
     updateUI();
+}
+
+// Guest name submission
+function submitGuestName() {
+    const nameInput = document.getElementById('guestNameInput');
+    const name = nameInput.value.trim();
+    
+    if (registerGuestName(name)) {
+        // Successfully registered, proceed to game
+        document.getElementById('setupScreen').style.display = 'none';
+        document.getElementById('questionScreen').style.display = 'block';
+        
+        // Hide subtitle
+        const subtitle = document.getElementById('mainSubtitle');
+        if (subtitle) subtitle.style.display = 'none';
+        
+        // Initialize swipe functionality for guests
+        setTimeout(() => {
+            if (typeof initializeSwipe === 'function') {
+                initializeSwipe();
+            }
+        }, 100);
+        
+        updateUI();
+    }
 }
 
 // Game restart

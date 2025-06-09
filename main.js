@@ -1,4 +1,4 @@
-// main.js - Application Initialization and Event Handlers
+// main.js - Application Initialization and Event Handlers (Updated for Guests)
 
 // Initialize the application
 function initializeApp() {
@@ -34,10 +34,20 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Handle guest name input enter key
+    const guestNameInput = document.getElementById('guestNameInput');
+    if (guestNameInput) {
+        guestNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitGuestName();
+            }
+        });
+    }
 }
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 // Application is ready
-console.log('Wedding Quiz Game loaded successfully! 🌿💕');
+console.log('Wedding Quiz Game with Guest Support loaded successfully! 🌿💕🎉');
