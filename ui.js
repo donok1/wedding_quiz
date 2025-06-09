@@ -1,7 +1,18 @@
 // ui.js - User Interface Management (Updated for Guests and Swipe) - FIXED WITH GUEST RESULTS
 
+// View mode for admin final screen: 'couple' or 'guest'
+let adminFinalResultView = 'couple';
+
 // Main UI update dispatcher
 function updateUI() {
+    if (
+        gameState.userRole === 'admin' &&
+        roomData &&
+        roomData.gameCompleted &&
+        adminFinalResultView === 'guest'
+    ) {
+        return; // Don't overwrite guest matching result view
+    }
     if (gameState.userRole === 'admin') {
         updateAdminUI();
     } else if (gameState.userRole === 'fanny' || gameState.userRole === 'nelson' || gameState.userRole === 'guest') {
@@ -112,6 +123,11 @@ function updateAdminUI() {
     // SAFETY CHECKS - Ensure roomData and arrays exist
     if (!roomData) {
         console.warn('roomData is undefined');
+        return;
+    }
+
+    if (roomData && roomData.gameCompleted && adminFinalResultView === 'guest') {
+        // Don't overwrite the permanent guest score view
         return;
     }
 
@@ -314,33 +330,27 @@ function updatePlayerStatus() {
 
 // Show final results screen
 function showFinalResults() {
+    if (adminFinalResultView === 'guest') {
+        showTopGuestMatchView();
+        return;
+    }
+
     const matches = roomData.matches || 0;
     const compatibility = Math.round((matches / CONFIG.TOTAL_QUESTIONS) * 100);
-    
-    // Calculate guest statistics
-    const totalGuests = (roomData.guestNames && roomData.guestNames.length) || 0;
-    let guestStatsHtml = '';
-    
-    if (totalGuests > 0) {
-        guestStatsHtml = `
-            <div class="guest-stats">
-                <h3>📊 Statistiques des invités</h3>
-                <p><strong>${totalGuests}</strong> invité(s) ont participé au quiz</p>
-            </div>
-        `;
-    }
-    
+
     document.getElementById('adminScreen').innerHTML = `
         <div class="final-results">
             <h2>🎉 Quiz Terminé ! 🎉</h2>
             <div class="compatibility-score">${compatibility}%</div>
             <p>Fanny et Nelson sont d'accord sur <strong>${matches}</strong> questions sur <strong>${CONFIG.TOTAL_QUESTIONS}</strong> !</p>
             <p>${getCompatibilityMessage(compatibility)}</p>
-            ${guestStatsHtml}
             <button class="next-btn" onclick="restartQuiz()">Nouveau Quiz</button>
+            <button class="next-btn" style="margin-top:30px;" onclick="showTopGuestMatchView()">Révéler les scores invités 👑</button>
         </div>
     `;
 }
+
+
 
 // Connection status management
 function updateConnectionStatus(connected) {
@@ -373,3 +383,97 @@ function showError(message) {
         errorEl.style.display = 'none';
     }, 5000);
 }
+
+// --- Compute guest matching ratios ---
+function getGuestMatchingRatios() {
+    const guestRatios = [];
+    const totalQuestions = CONFIG.TOTAL_QUESTIONS;
+    const fanny = roomData.fannyAnswers || [];
+    const nelson = roomData.nelsonAnswers || [];
+    const guestAnswers = roomData.guestAnswers || {};
+    const guestNames = roomData.guestNames || [];
+
+    for (const name of guestNames) {
+        const answers = guestAnswers[name] || [];
+        let matchFanny = 0;
+        let matchNelson = 0;
+        let countAnswered = 0;
+        for (let i = 0; i < totalQuestions; i++) {
+            if (typeof answers[i] !== "undefined") {
+                countAnswered++;
+                if (typeof fanny[i] !== "undefined" && answers[i] === fanny[i]) matchFanny++;
+                if (typeof nelson[i] !== "undefined" && answers[i] === nelson[i]) matchNelson++;
+            }
+        }
+        // Avoid showing guests that didn't answer anything
+        if (countAnswered > 0) {
+            guestRatios.push({
+                name,
+                fannyScore: Math.round((matchFanny / totalQuestions) * 100),
+                nelsonScore: Math.round((matchNelson / totalQuestions) * 100)
+            });
+        }
+    }
+    return guestRatios;
+}
+
+// --- Render the top 10 guests matching view ---
+function showTopGuestMatchView() {
+    adminFinalResultView = 'guest';
+
+    const guestRatios = getGuestMatchingRatios();
+    const topFanny = [...guestRatios].sort((a, b) => b.fannyScore - a.fannyScore).slice(0, 10);
+    const topNelson = [...guestRatios].sort((a, b) => b.nelsonScore - a.nelsonScore).slice(0, 10);
+
+    let fannyCol = '<div class="guest-match-col"><h3>👰‍♀️ Top 10 Fanny</h3>';
+    fannyCol += '<ol class="guest-match-list">';
+    for (const guest of topFanny) {
+        fannyCol += `<li><strong>${guest.name}</strong> <span class="score">${guest.fannyScore}%</span></li>`;
+    }
+    fannyCol += '</ol></div>';
+
+    let nelsonCol = '<div class="guest-match-col"><h3>🤵‍♂️ Top 10 Nelson</h3>';
+    nelsonCol += '<ol class="guest-match-list">';
+    for (const guest of topNelson) {
+        nelsonCol += `<li><strong>${guest.name}</strong> <span class="score">${guest.nelsonScore}%</span></li>`;
+    }
+    nelsonCol += '</ol></div>';
+
+    const html = `
+        <div class="top-guest-matching-view">
+            <h2>🏆 Meilleurs invités compatibles</h2>
+            <div class="guest-match-columns">
+                ${fannyCol}
+                ${nelsonCol}
+            </div>
+            <button class="next-btn" style="position:static;margin-top:40px;" onclick="showAdminFinalResults()">Retour au score du couple</button>
+        </div>
+    `;
+    document.getElementById('adminScreen').innerHTML = html;
+}
+
+
+// Helper to go back to normal results
+function showAdminFinalResults() {
+    adminFinalResultView = 'couple';
+    showFinalResults();
+}
+
+// --- Insert styles for the new view ---
+(function injectGuestMatchingStyles() {
+    if (document.getElementById('guest-matching-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'guest-matching-styles';
+    style.innerHTML = `
+    .top-guest-matching-view { padding:40px 0; text-align:center; color:#2E7D32; }
+    .top-guest-matching-view h2 { font-size:2.3rem; margin-bottom:30px;}
+    .guest-match-columns { display:flex; justify-content:center; gap:60px; margin-top:30px;}
+    .guest-match-col { background:rgba(255,255,255,0.92); border-radius:15px; padding:28px 32px; min-width:300px; box-shadow:0 4px 20px #c8e6c980;}
+    .guest-match-col h3 { margin-bottom:16px; font-size:1.3rem; color:#E91E63; }
+    .guest-match-col:last-child h3 { color:#2196F3;}
+    .guest-match-list { list-style:decimal; margin:0; padding:0 0 0 18px;}
+    .guest-match-list li { font-size:1.15rem; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;}
+    .score { font-weight:bold; color:#4CAF50; font-size:1.1em; margin-left:18px;}
+    `;
+    document.head.appendChild(style);
+})();
