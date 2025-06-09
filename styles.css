@@ -356,15 +356,15 @@ input[type="text"]:focus {
 
 .question-counter.admin-mode {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 40px;
-    padding: 8px 15px;
+    top: 5px;
+    left: 20px;
+    width: 200px;
+    height: 30px;
+    padding: 5px 15px;
     margin-bottom: 0;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     text-align: center;
-    line-height: 24px;
+    line-height: 20px;
 }
 
 .question {
@@ -593,7 +593,7 @@ input[type="text"]:focus {
     position: absolute;
     top: 5px;
     right: 20px;
-    left: 350px;
+    left: 240px;
     height: 30px;
 }
 
@@ -754,7 +754,30 @@ input[type="text"]:focus {
     color: #D32F2F;
 }
 
-/* === NEXT BUTTON === */
+/* === REVEAL ANSWERS BUTTON === */
+.reveal-btn {
+    position: absolute;
+    top: 320px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #FF9800, #FFB74D);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+    height: 50px;
+    min-width: 200px;
+}
+
+.reveal-btn:hover {
+    transform: translate(-50%, -2px);
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.5);
+}
 .next-btn {
     position: absolute;
     bottom: 20px;

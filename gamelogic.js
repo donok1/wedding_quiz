@@ -269,6 +269,15 @@ function submitGuestName() {
     }
 }
 
+// Reveal answers function
+function revealAnswers() {
+    // Show the results and hide the reveal button
+    document.getElementById('revealSection').style.display = 'none';
+    document.getElementById('adminResults').style.display = 'grid';
+    document.getElementById('matchResult').style.display = 'block';
+    document.getElementById('nextBtn').style.display = 'block';
+}
+
 // Game restart
 function restartQuiz() {
     roomData = initializeRoomData();
