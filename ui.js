@@ -1,4 +1,4 @@
-// ui.js - User Interface Management (Updated for Guests and Swipe) - FIXED
+// ui.js - User Interface Management (Updated for Guests and Swipe) - FIXED WITH GUEST RESULTS
 
 // Main UI update dispatcher
 function updateUI() {
@@ -81,6 +81,32 @@ function updatePartnerUI() {
     }
 }
 
+// Helper function to get guests who match a specific answer for current question
+function getGuestsWithAnswer(answer) {
+    const currentQ = roomData.currentQuestion || 0;
+    const matchingGuests = [];
+    
+    if (!roomData.guestAnswers) return matchingGuests;
+    
+    for (const guestName in roomData.guestAnswers) {
+        if (roomData.guestAnswers[guestName] && 
+            roomData.guestAnswers[guestName][currentQ] === answer) {
+            matchingGuests.push(guestName);
+        }
+    }
+    
+    return matchingGuests;
+}
+
+// Helper function to format guest list
+function formatGuestList(guests) {
+    if (!guests || guests.length === 0) {
+        return '<div class="no-guests">Aucun invité</div>';
+    }
+    
+    return guests.map(name => `<div class="guest-name-item">${name}</div>`).join('');
+}
+
 // Update UI for admin screen
 function updateAdminUI() {
     // SAFETY CHECKS - Ensure roomData and arrays exist
@@ -137,17 +163,23 @@ function updateAdminUI() {
         
         // Check if answers have already been revealed for this question
         if (gameState.answersRevealed) {
-            // Keep showing the revealed answers
+            // Show revealed answers with guest information
             document.getElementById('revealSection').style.display = 'none';
             document.getElementById('adminResults').style.display = 'grid';
             document.getElementById('matchResult').style.display = 'block';
             document.getElementById('nextBtn').style.display = 'block';
+            
+            // Add guest results below
+            addGuestResultsSection(fannyAnswer, nelsonAnswer);
         } else {
             // Show reveal button instead of immediately showing results
             document.getElementById('revealSection').style.display = 'block';
             document.getElementById('adminResults').style.display = 'none';
             document.getElementById('matchResult').style.display = 'none';
             document.getElementById('nextBtn').style.display = 'none';
+            
+            // Remove any existing guest results section
+            removeGuestResultsSection();
         }
     } else {
         document.getElementById('adminWaiting').style.display = 'block';
@@ -155,6 +187,91 @@ function updateAdminUI() {
         document.getElementById('adminResults').style.display = 'none';
         document.getElementById('matchResult').style.display = 'none';
         document.getElementById('nextBtn').style.display = 'none';
+        
+        // Remove any existing guest results section
+        removeGuestResultsSection();
+    }
+}
+
+// NEW: Add guest results section below the answer boxes
+function addGuestResultsSection(fannyAnswer, nelsonAnswer) {
+    // Remove any existing guest results section first
+    removeGuestResultsSection();
+    
+    const isMatch = fannyAnswer === nelsonAnswer;
+    
+    // Create the guest results section
+    const guestSection = document.createElement('div');
+    guestSection.id = 'guestResultsSection';
+    guestSection.className = 'guest-results-section';
+    
+    if (isMatch) {
+        // When bride and groom match, show a single centered list
+        guestSection.classList.add('match-layout');
+        
+        const matchingGuests = getGuestsWithAnswer(fannyAnswer);
+        
+        const matchColumn = document.createElement('div');
+        matchColumn.className = 'guest-column match-column';
+        matchColumn.innerHTML = `
+            <div class="guest-column-header match-header">Invités qui sont d'accord avec le couple</div>
+            <div class="guest-names-list horizontal">${formatGuestList(matchingGuests)}</div>
+        `;
+        
+        guestSection.appendChild(matchColumn);
+    } else {
+        // When bride and groom don't match, show two columns
+        const guestsLikeFanny = getGuestsWithAnswer(fannyAnswer);
+        const guestsLikeNelson = getGuestsWithAnswer(nelsonAnswer);
+        
+        // Fanny's column
+        const fannyColumn = document.createElement('div');
+        fannyColumn.className = 'guest-column';
+        fannyColumn.innerHTML = `
+            <div class="guest-column-header">Invités comme Fanny</div>
+            <div class="guest-names-list">${formatGuestList(guestsLikeFanny)}</div>
+        `;
+        
+        // Nelson's column
+        const nelsonColumn = document.createElement('div');
+        nelsonColumn.className = 'guest-column';
+        nelsonColumn.innerHTML = `
+            <div class="guest-column-header">Invités comme Nelson</div>
+            <div class="guest-names-list">${formatGuestList(guestsLikeNelson)}</div>
+        `;
+        
+        guestSection.appendChild(fannyColumn);
+        guestSection.appendChild(nelsonColumn);
+    }
+    
+    // Insert the guest section into the admin screen
+    const adminScreen = document.getElementById('adminScreen');
+    adminScreen.appendChild(guestSection);
+    
+    // Adjust match indicator position if there are guests
+    const matchElement = document.getElementById('matchResult');
+    const hasGuests = isMatch ? getGuestsWithAnswer(fannyAnswer).length > 0 : 
+                                (getGuestsWithAnswer(fannyAnswer).length > 0 || 
+                                 getGuestsWithAnswer(nelsonAnswer).length > 0);
+    
+    if (hasGuests) {
+        matchElement.classList.add('with-guests');
+    } else {
+        matchElement.classList.remove('with-guests');
+    }
+}
+
+// NEW: Remove guest results section
+function removeGuestResultsSection() {
+    const existingSection = document.getElementById('guestResultsSection');
+    if (existingSection) {
+        existingSection.remove();
+    }
+    
+    // Reset match indicator position
+    const matchElement = document.getElementById('matchResult');
+    if (matchElement) {
+        matchElement.classList.remove('with-guests');
     }
 }
 
