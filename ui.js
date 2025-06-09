@@ -114,11 +114,20 @@ function updateAdminUI() {
         matchElement.textContent = isMatch ? "🎉 C'est un match !" : "💔 Pas d'accord";
         matchElement.className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
         
-        // Show reveal button instead of immediately showing results
-        document.getElementById('revealSection').style.display = 'block';
-        document.getElementById('adminResults').style.display = 'none';
-        document.getElementById('matchResult').style.display = 'none';
-        document.getElementById('nextBtn').style.display = 'none';
+        // Check if answers have already been revealed for this question
+        if (gameState.answersRevealed) {
+            // Keep showing the revealed answers
+            document.getElementById('revealSection').style.display = 'none';
+            document.getElementById('adminResults').style.display = 'grid';
+            document.getElementById('matchResult').style.display = 'block';
+            document.getElementById('nextBtn').style.display = 'block';
+        } else {
+            // Show reveal button instead of immediately showing results
+            document.getElementById('revealSection').style.display = 'block';
+            document.getElementById('adminResults').style.display = 'none';
+            document.getElementById('matchResult').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
     } else {
         document.getElementById('adminWaiting').style.display = 'block';
         document.getElementById('revealSection').style.display = 'none';

@@ -6,7 +6,8 @@ let gameState = {
     userRole: null,
     guestName: null,       // For guest users
     isConnected: false,
-    lastHeartbeat: 0
+    lastHeartbeat: 0,
+    answersRevealed: false // Track if answers have been revealed for current question
 };
 
 let roomData = {};
@@ -172,6 +173,9 @@ function submitAnswer(answer) {
 function nextQuestion() {
     roomData.currentQuestion++;
     
+    // Reset answers revealed state for the new question
+    gameState.answersRevealed = false;
+    
     if (roomData.currentQuestion >= CONFIG.TOTAL_QUESTIONS) {
         roomData.gameCompleted = true;
     }
@@ -271,6 +275,9 @@ function submitGuestName() {
 
 // Reveal answers function
 function revealAnswers() {
+    // Mark answers as revealed for this question
+    gameState.answersRevealed = true;
+    
     // Show the results and hide the reveal button
     document.getElementById('revealSection').style.display = 'none';
     document.getElementById('adminResults').style.display = 'grid';
