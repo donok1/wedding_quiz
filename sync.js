@@ -22,8 +22,11 @@ function sendHeartbeat() {
 
 function syncRoomData() {
     if (!gameState.roomCode) return;
-    
+
     try {
+        // If game is completed, do not update the admin status UI anymore
+        if (roomData && roomData.gameCompleted) return;
+
         // Data is updated via Firebase listener - just update UI and status
         updateUI();
         updatePlayerStatus();
@@ -65,8 +68,10 @@ function startSync() {
                     if (typeof roomData.gameCompleted === 'undefined') roomData.gameCompleted = false;
                     
                     // Update UI safely
-                    updateUI();
-                    updatePlayerStatus();
+                    if (!(roomData && roomData.gameCompleted)) {
+                        updateUI();
+                        updatePlayerStatus();
+                    }
                 } else {
                     // No data exists yet, initialize
                     roomData = initializeRoomData();
