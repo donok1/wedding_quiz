@@ -98,8 +98,8 @@ function updateAdminUI() {
 
     if (hasFanny && hasNelson) {
         document.getElementById('adminWaiting').style.display = 'none';
-        document.getElementById('adminResults').style.display = 'grid';
         
+        // Prepare the answers for display
         const fannyAnswer = roomData.fannyAnswers[currentQ];
         const nelsonAnswer = roomData.nelsonAnswers[currentQ];
         
@@ -111,13 +111,17 @@ function updateAdminUI() {
         
         const isMatch = fannyAnswer === nelsonAnswer;
         const matchElement = document.getElementById('matchResult');
-        matchElement.style.display = 'block';
         matchElement.textContent = isMatch ? "🎉 C'est un match !" : "💔 Pas d'accord";
         matchElement.className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
         
-        document.getElementById('nextBtn').style.display = 'block';
+        // Show reveal button instead of immediately showing results
+        document.getElementById('revealSection').style.display = 'block';
+        document.getElementById('adminResults').style.display = 'none';
+        document.getElementById('matchResult').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'none';
     } else {
         document.getElementById('adminWaiting').style.display = 'block';
+        document.getElementById('revealSection').style.display = 'none';
         document.getElementById('adminResults').style.display = 'none';
         document.getElementById('matchResult').style.display = 'none';
         document.getElementById('nextBtn').style.display = 'none';
