@@ -22,15 +22,25 @@ function saveRoomData() {
         } else if (gameState.userRole && gameState.userRole !== 'guest') {
             roomData.heartbeats[gameState.userRole] = Date.now();
         }
-        localStorage.setItem(`weddingQuiz_${gameState.roomCode}`, JSON.stringify(roomData));
+        
+        // Save to Firebase instead of localStorage
+        database.ref(`rooms/${gameState.roomCode}`).set(roomData);
     }
 }
 
 function loadRoomData() {
     if (gameState.roomCode) {
-        const saved = localStorage.getItem(`weddingQuiz_${gameState.roomCode}`);
-        if (saved) {
-            roomData = JSON.parse(saved);
+        // Firebase will handle this via real-time listener in startSync()
+        // Initialize empty room data if needed
+        database.ref(`rooms/${gameState.roomCode}`).once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                roomData = data;
+            } else {
+                roomData = initializeRoomData();
+                saveRoomData();
+            }
+            
             // Ensure all required objects exist
             if (!roomData.heartbeats) {
                 roomData.heartbeats = { fanny: 0, nelson: 0, admin: 0, guests: {} };
@@ -44,9 +54,7 @@ function loadRoomData() {
             if (!roomData.guestNames) {
                 roomData.guestNames = [];
             }
-        } else {
-            roomData = initializeRoomData();
-        }
+        });
     }
 }
 

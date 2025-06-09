@@ -1,23 +1,24 @@
-// sync.js - Real-time Synchronization
-
-// Sync intervals
+// sync.js - Firebase Real-time Synchronization
 let syncInterval;
 let heartbeatInterval;
+let roomRef;
+let roomListener;
 
-// Heartbeat management
 function sendHeartbeat() {
     if (gameState.userRole && gameState.roomCode) {
-        roomData.heartbeats[gameState.userRole] = Date.now();
-        localStorage.setItem(`weddingQuiz_${gameState.roomCode}`, JSON.stringify(roomData));
+        const heartbeatPath = `heartbeats/${gameState.userRole}`;
+        if (gameState.userRole === 'guest' && gameState.guestName) {
+            roomRef.child(`heartbeats/guests/${gameState.guestName}`).set(Date.now());
+        } else {
+            roomRef.child(heartbeatPath).set(Date.now());
+        }
     }
 }
 
-// Main synchronization function
 function syncRoomData() {
     if (!gameState.roomCode) return;
     
     try {
-        loadRoomData();
         updateUI();
         updatePlayerStatus();
         updateConnectionStatus(true);
@@ -27,16 +28,28 @@ function syncRoomData() {
     }
 }
 
-// Start synchronization
 function startSync() {
     if (syncInterval) clearInterval(syncInterval);
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     
     syncInterval = setInterval(syncRoomData, CONFIG.SYNC_INTERVAL);
     heartbeatInterval = setInterval(sendHeartbeat, CONFIG.HEARTBEAT_INTERVAL);
+    
+    // Set up Firebase listener
+    if (gameState.roomCode) {
+        roomRef = database.ref(`rooms/${gameState.roomCode}`);
+        
+        roomListener = roomRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                roomData = data;
+                updateUI();
+                updatePlayerStatus();
+            }
+        });
+    }
 }
 
-// Stop synchronization
 function stopSync() {
     if (syncInterval) {
         clearInterval(syncInterval);
@@ -45,5 +58,8 @@ function stopSync() {
     if (heartbeatInterval) {
         clearInterval(heartbeatInterval);
         heartbeatInterval = null;
+    }
+    if (roomRef && roomListener) {
+        roomRef.off('value', roomListener);
     }
 }
