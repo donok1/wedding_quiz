@@ -14,7 +14,7 @@ const questions = [
     "Echanger son conjoint contre du Nutella",
     "Danser dans le salon",
     "Faire du shopping avec ses ami.es",
-	"Faire du shopping avec son conjoint",
+    "Faire du shopping avec son conjoint",
     "Dormir sans pijama",
     "Prendre une douche à deux",
     "Essayer de nouveaux endroits pour faire l’amour"

@@ -86,16 +86,6 @@ class SwipeHandler {
                     <div class="card-question">${currentQuestion}</div>
                     <div class="card-instruction">👈 Je n'aime pas &nbsp;&nbsp;&nbsp;&nbsp; J'aime 👉</div>
                 </div>
-                <div class="swipe-indicators">
-                    <div class="swipe-hint dislike-hint">
-                        <span>❌</span>
-                        <span>Non</span>
-                    </div>
-                    <div class="swipe-hint like-hint">
-                        <span>Oui</span>
-                        <span>✅</span>
-                    </div>
-                </div>
             </div>
         `;
 
@@ -311,34 +301,6 @@ class SwipeHandler {
             this.card.classList.remove('like-preview', 'dislike-preview');
         }
 
-        // Update hint visibility
-        this.updateHints(deltaX);
-    }
-
-    updateHints(deltaX) {
-        const likeHint = this.card.querySelector('.like-hint');
-        const dislikeHint = this.card.querySelector('.dislike-hint');
-        
-        if (likeHint && dislikeHint) {
-            if (Math.abs(deltaX) > this.swipeThreshold / 2) {
-                if (deltaX > 0) {
-                    likeHint.style.opacity = '1';
-                    likeHint.style.transform = 'scale(1.1)';
-                    dislikeHint.style.opacity = '0.5';
-                    dislikeHint.style.transform = 'scale(1)';
-                } else {
-                    dislikeHint.style.opacity = '1';
-                    dislikeHint.style.transform = 'scale(1.1)';
-                    likeHint.style.opacity = '0.5';
-                    likeHint.style.transform = 'scale(1)';
-                }
-            } else {
-                likeHint.style.opacity = '0.7';
-                likeHint.style.transform = 'scale(1)';
-                dislikeHint.style.opacity = '0.7';
-                dislikeHint.style.transform = 'scale(1)';
-            }
-        }
     }
 
     handleEnd(e) {
@@ -389,13 +351,6 @@ class SwipeHandler {
         this.card.style.transform = 'translateX(0px) translateY(0px) rotate(0deg) scale(1)';
         this.card.style.opacity = '1';
         this.card.classList.remove('like-preview', 'dislike-preview');
-
-        // Reset hints
-        const hints = this.card.querySelectorAll('.swipe-hint');
-        hints.forEach(hint => {
-            hint.style.opacity = '0.7';
-            hint.style.transform = 'scale(1)';
-        });
 
         var self = this;
         setTimeout(function() {
@@ -538,12 +493,6 @@ class SwipeHandler {
             // Update card icon based on question content
             this.updateCardIcon(questionText);
 
-            // Reset hints
-            const hints = this.card.querySelectorAll('.swipe-hint');
-            hints.forEach(hint => {
-                hint.style.opacity = '0.7';
-                hint.style.transform = 'scale(1)';
-            });
         }
 
         if (this.isTouchDevice) {
@@ -561,12 +510,14 @@ class SwipeHandler {
         let newIcon = '❓';
         const text = questionText.toLowerCase();
         
-        if (text.includes('nourriture') || text.includes('manger') || text.includes('cuisiner') || text.includes('pizza')) {
-            newIcon = '🍕';
-        } else if (text.includes('musique') || text.includes('chanter') || text.includes('danser')) {
+        if (text.includes('ananas')) {
+            newIcon = '🍍🍕';
+        } else if (text.includes('musique') || text.includes('chanter')) {
             newIcon = '🎵';
-        } else if (text.includes('sport') || text.includes('exercice') || text.includes('promenade')) {
-            newIcon = '🏃‍♂️';
+        } else if (text.includes('Cuisiner')) {
+            newIcon = '🔪';
+        } else if (text.includes('Echanger')) {
+            newIcon = '🔀';
         } else if (text.includes('film') || text.includes('télé') || text.includes('regarder')) {
             newIcon = '🎬';
         } else if (text.includes('shopping') || text.includes('acheter')) {
@@ -575,12 +526,16 @@ class SwipeHandler {
             newIcon = '🌲';
         } else if (text.includes('fête') || text.includes('surprise') || text.includes('célébrer')) {
             newIcon = '🎉';
+        } else if (text.includes('danser') ) {
+            newIcon = '💃🕺';
         } else if (text.includes('photo') || text.includes('selfie')) {
             newIcon = '📸';
         } else if (text.includes('jeu') || text.includes('jouer')) {
             newIcon = '🎮';
-        } else if (text.includes('lever') || text.includes('matin') || text.includes('week-end')) {
-            newIcon = '🌅';
+        } else if (text.includes('dormir') || text.includes('pijama')) {
+            newIcon = '😏';
+        } else if (text.includes('douche') ) {
+            newIcon = '🚿';
         }
 
         icon.textContent = newIcon;
