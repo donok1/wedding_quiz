@@ -907,7 +907,7 @@ input[type="text"]:focus {
 .guest-match-col {
     background: rgba(255, 255, 255, 0.92);
     border-radius: 12px;
-    padding: 20px 25px;
+    padding: 2px 2px;
     min-width: 250px;
     max-width: 350px;
     box-shadow: var(--shadow-light);
@@ -916,7 +916,7 @@ input[type="text"]:focus {
 }
 
 .guest-match-col h3 {
-    margin-bottom: 12px;
+    margin-bottom: 2px;
     font-size: 1.1rem;
     color: var(--pink);
 }
@@ -932,8 +932,8 @@ input[type="text"]:focus {
 }
 
 .guest-match-list li {
-    font-size: 1rem;
-    margin-bottom: 6px;
+    font-size: 1.15rem;
+    margin-bottom: 0px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2029,45 +2029,6 @@ button, input, .swipe-card, .container {
     font-size: 2.3rem;
     margin-bottom: 30px;
     font-weight: 700;
-}
-
-.guest-match-columns {
-    display: flex;
-    justify-content: center;
-    gap: 60px;
-    margin-top: 30px;
-}
-
-.guest-match-col {
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 15px;
-    padding: 28px 32px;
-    min-width: 300px;
-    box-shadow: var(--shadow-light);
-}
-
-.guest-match-col h3 {
-    margin-bottom: 16px;
-    font-size: 1.3rem;
-    color: var(--pink);
-}
-
-.guest-match-col:last-child h3 {
-    color: var(--blue);
-}
-
-.guest-match-list {
-    list-style: decimal;
-    margin: 0;
-    padding: 0 0 0 18px;
-}
-
-.guest-match-list li {
-    font-size: 1.15rem;
-    margin-bottom: 9px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
 .score {
