@@ -302,6 +302,32 @@ function selectRole(role) {
     updateUI();
 }
 
+// Login button visibility
+function updateRoleButtonVisibility() {
+    if (!roomData || !roomData.heartbeats) return;
+    
+    const fannyBtn = document.querySelector('.fanny-btn');
+    const nelsonBtn = document.querySelector('.nelson-btn');
+    
+    if (fannyBtn) {
+        const fannyConnected = isPlayerConnected('fanny');
+        if (fannyConnected) {
+            fannyBtn.style.display = 'none';
+        } else {
+            fannyBtn.style.display = 'block';
+        }
+    }
+    
+    if (nelsonBtn) {
+        const nelsonConnected = isPlayerConnected('nelson');
+        if (nelsonConnected) {
+            nelsonBtn.style.display = 'none';
+        } else {
+            nelsonBtn.style.display = 'block';
+        }
+    }
+}
+
 // Guest name submission
 function submitGuestName() {
     const nameInput = document.getElementById('guestNameInput');

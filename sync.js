@@ -31,6 +31,9 @@ function syncRoomData() {
         updateUI();
         updatePlayerStatus();
         updateConnectionStatus(true);
+        
+        // Add this line to update button visibility
+        updateRoleButtonVisibility();
     } catch (error) {
         console.error('Sync error:', error);
         updateConnectionStatus(false);
@@ -71,6 +74,8 @@ function startSync() {
                     if (!(roomData && roomData.gameCompleted)) {
                         updateUI();
                         updatePlayerStatus();
+                        // Add this line here too
+                        updateRoleButtonVisibility();
                     }
                 } else {
                     // No data exists yet, initialize

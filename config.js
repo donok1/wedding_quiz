@@ -3,20 +3,21 @@
 // Questions array in French
 const questions = [
     "L'ananas sur la pizza",
-    "Se lever tôt le week-end",
     "Les films d'horreur",
-    "Chanter sous la douche",
-    "Les réseaux sociaux",
-    "Danser en soirée",
     "Camper dans la nature",
-    "La nourriture épicée",
     "Les fêtes surprises",
-    "Les longues promenades romantiques",
     "Cuisiner ensemble",
-    "Regarder la télé-réalité",
-    "Faire du shopping",
     "Jouer aux jeux de société",
-    "Prendre des selfies"
+    "Battre son conjoint aux jeux videos",
+    "Prendre des selfies",
+    "Chanter sous la douche",
+    "Echanger son conjoint contre du Nutella",
+    "Danser dans le salon",
+    "Faire du shopping avec ses ami.es",
+	"Faire du shopping avec son conjoint",
+    "Dormir sans pijama",
+    "Prendre une douche à deux",
+    "Essayer de nouveaux endroits pour faire l’amour"
 ];
 
 // Game settings

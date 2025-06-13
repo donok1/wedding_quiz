@@ -13,9 +13,9 @@
 }
 
 .container.admin-mode {
-    max-width: 1280px;
-    width: 1280px;
-    height: 720px;
+    max-width: 1600px;
+    width: 1600px;
+    height: 800px;
     min-height: auto;
     border-radius: var(--border-radius);
 }
@@ -35,8 +35,8 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    padding: 15px 20px;
+    height: 80px;
+    padding: 20px 25px;
 }
 
 /* Remove header decorations */
@@ -55,7 +55,7 @@ h1 {
 }
 
 h1.admin-mode {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     margin-bottom: 0;
 }
 
@@ -71,16 +71,15 @@ h1.admin-mode {
 .room-indicator {
     position: absolute;
     top: 15px;
-    left: 25px; /* align on the left */
-    /* Remove transform: translateX(-50%); */
+    left: 50%;
+    transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
-    z-index: 3; /* make sure it's above backgrounds but below the title if needed */
-    padding: 8px 18px;
-    border-radius: 12px;
-    font-size: 1.1rem;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 0.85rem;
     font-weight: 600;
-    /* Add margin if needed */
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* === MAIN CONTENT === */
@@ -94,11 +93,11 @@ h1.admin-mode {
 
 .main-content.admin-mode {
     position: absolute;
-    top: 60px;
+    top: 80px;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 15px 20px;
+    padding: 20px 25px;
     min-height: auto;
 }
 
@@ -217,7 +216,6 @@ input[type="text"]:focus {
 }
 
 .admin-btn {
-	display: none !important;
     background: linear-gradient(135deg, #9C27B0, #BA68C8);
 }
 
@@ -250,12 +248,12 @@ input[type="text"]:focus {
 
 .question-counter.admin-mode {
     position: absolute;
-    top: 8px;
-    left: 20px;
-    width: 180px;
-    padding: 6px 12px;
+    top: 10px;
+    left: 25px;
+    width: 200px;
+    padding: 8px 15px;
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
 }
 
 .question {
@@ -270,19 +268,15 @@ input[type="text"]:focus {
 
 .question.admin-mode {
     position: absolute;
-    top: 45px;
-    left: 20px;
-    right: 20px;
-    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+    top: 60px;
+    left: 25px;
+    right: 25px;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
     margin: 0;
-    padding: 20px;
+    padding: 25px;
     background: rgba(255, 255, 255, 0.5);
     border-radius: 15px;
     backdrop-filter: blur(10px);
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 /* === SWIPE CARD - KEEP ANIMATIONS ONLY FOR SWIPING === */
@@ -414,13 +408,13 @@ input[type="text"]:focus {
 
 .admin-waiting {
     position: absolute;
-    top: 180px;
-    left: 20px;
-    right: 20px;
+    top: 250px;
+    left: 25px;
+    right: 25px;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     color: #F57F17;
-    padding: 20px;
+    padding: 25px;
     background: linear-gradient(135deg, #FFF9C4, #FFF59D);
     border-radius: 15px;
     font-weight: 600;
@@ -429,28 +423,28 @@ input[type="text"]:focus {
 /* === ADMIN STATUS === */
 .admin-top-section {
     position: absolute;
-    top: 8px;
-    right: 20px;
-    left: 220px;
-    height: 35px;
+    top: 10px;
+    right: 25px;
+    left: 250px;
+    height: 40px;
 }
 
 .admin-status {
     display: flex;
-    gap: 15px;
-    font-size: 0.8rem;
+    gap: 20px;
+    font-size: 0.9rem;
     justify-content: flex-end;
 }
 
 .player-status {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    padding: 6px 12px;
-    border-radius: 12px;
+    padding: 8px 15px;
+    border-radius: 15px;
     border: 2px solid transparent;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .fanny-status {
@@ -574,13 +568,12 @@ input[type="text"]:focus {
 /* === GUEST RESULTS SECTION === */
 .guest-results-section {
     position: absolute;
-    top: 355px;
-    left: 20px;
-    right: 20px;
+    top: 460px;
+    left: 25px;
+    right: 25px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 25px;
-    max-height: 120px;
+    gap: 30px;
 }
 
 .guest-results-section.match-layout {
@@ -591,24 +584,22 @@ input[type="text"]:focus {
 
 .guest-column {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 15px;
+    padding: 15px;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    max-height: 120px;
-    overflow-y: auto;
 }
 
 .guest-column.match-column {
     background: rgba(200, 230, 201, 0.2);
     border-color: rgba(76, 175, 80, 0.3);
-    max-width: 600px;
+    max-width: 800px;
     width: 100%;
 }
 
 .guest-column-header {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: bold;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: var(--dark-green);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -617,27 +608,27 @@ input[type="text"]:focus {
 .guest-column-header.match-header {
     text-align: center;
     color: var(--dark-green);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .guest-names-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
 }
 
 .guest-names-list.horizontal {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px;
+    gap: 10px;
 }
 
 .guest-name-item {
     background: rgba(255, 255, 255, 0.9);
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
     color: var(--dark-green);
     border: 1px solid rgba(76, 175, 80, 0.3);
 }
@@ -653,21 +644,21 @@ input[type="text"]:focus {
 /* === MATCH INDICATOR === */
 .match-indicator {
     position: absolute;
-    top: 360px;
-    left: 20px;
-    right: 20px;
-    height: 60px;
-    font-size: 1.8rem;
+    top: 480px;
+    left: 25px;
+    right: 25px;
+    height: 80px;
+    font-size: 2.2rem;
     font-weight: bold;
     text-align: center;
-    line-height: 60px;
+    line-height: 80px;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
+    border-radius: 15px;
     backdrop-filter: blur(10px);
 }
 
 .match-indicator.with-guests {
-    top: 485px;
+    top: 580px;
 }
 
 .match {
@@ -681,36 +672,36 @@ input[type="text"]:focus {
 /* === REVEAL ANSWERS BUTTON === */
 .reveal-btn {
     position: absolute;
-    top: 250px;
+    top: 350px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(45deg, var(--orange), #FFB74D);
     color: white;
     border: none;
-    padding: 12px 25px;
-    border-radius: 12px;
-    font-size: 1rem;
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-size: 1.2rem;
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-light);
-    min-width: 180px;
+    min-width: 200px;
 }
 
 .next-btn {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--gradient-primary);
     color: white;
     border: none;
-    padding: 12px 35px;
-    border-radius: 12px;
-    font-size: 1.1rem;
+    padding: 15px 40px;
+    border-radius: 15px;
+    font-size: 1.3rem;
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-light);
-    min-width: 180px;
+    min-width: 200px;
 }
 
 /* === FINAL RESULTS === */
@@ -721,47 +712,41 @@ input[type="text"]:focus {
     right: 0;
     bottom: 0;
     text-align: center;
-    padding: 40px 30px;
+    padding: 60px 40px;
     background: var(--gradient-primary);
     color: white;
     border-radius: var(--border-radius);
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
 .final-results h2 {
-    font-size: 2.5rem;
-    margin-bottom: 30px;
+    font-size: 3rem;
+    margin-bottom: 40px;
     font-weight: 700;
 }
 
 .final-results p {
-    font-size: 1.3rem;
-    margin: 20px 0;
-    max-width: 800px;
+    font-size: 1.6rem;
+    margin: 25px 0;
 }
 
 .compatibility-score {
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: bold;
-    margin: 30px 0;
+    margin: 40px 0;
 }
 
 .guest-stats {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 15px;
-    margin: 15px 0;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    max-width: 600px;
 }
 
 .guest-stats h3 {
-    font-size: 1.3rem;
-    margin-bottom: 8px;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
     color: #FFEB3B;
 }
 
@@ -870,8 +855,8 @@ input[type="text"]:focus {
 
     /* Keep admin mode fixed */
     .container.admin-mode {
-        width: 1280px;
-        height: 720px;
+        width: 1600px;
+        height: 800px;
         border-radius: var(--border-radius);
     }
 }
@@ -883,41 +868,35 @@ input[type="text"]:focus {
 
 /* === GUEST MATCHING STYLES === */
 .top-guest-matching-view {
-    padding: 30px 20px;
+    padding: 40px 0;
     text-align: center;
     color: var(--dark-green);
-    height: 100%;
-    overflow-y: auto;
 }
 
 .top-guest-matching-view h2 {
-    font-size: 2rem;
-    margin-bottom: 25px;
+    font-size: 2.3rem;
+    margin-bottom: 30px;
     font-weight: 700;
 }
 
 .guest-match-columns {
     display: flex;
     justify-content: center;
-    gap: 40px;
-    margin-top: 20px;
-    flex-wrap: wrap;
+    gap: 60px;
+    margin-top: 30px;
 }
 
 .guest-match-col {
     background: rgba(255, 255, 255, 0.92);
-    border-radius: 12px;
-    padding: 20px 25px;
-    min-width: 250px;
-    max-width: 350px;
+    border-radius: 15px;
+    padding: 28px 32px;
+    min-width: 300px;
     box-shadow: var(--shadow-light);
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 .guest-match-col h3 {
-    margin-bottom: 12px;
-    font-size: 1.1rem;
+    margin-bottom: 16px;
+    font-size: 1.3rem;
     color: var(--pink);
 }
 
@@ -928,26 +907,22 @@ input[type="text"]:focus {
 .guest-match-list {
     list-style: decimal;
     margin: 0;
-    padding: 0 0 0 15px;
+    padding: 0 0 0 18px;
 }
 
 .guest-match-list li {
-    font-size: 1rem;
-    margin-bottom: 6px;
+    font-size: 1.15rem;
+    margin-bottom: 9px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 0;
 }
 
 .score {
     font-weight: bold;
     color: var(--primary-green);
-    font-size: 0.9em;
-    margin-left: 12px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: rgba(76, 175, 80, 0.1);
+    font-size: 1.1em;
+    margin-left: 18px;
 }/* Enhanced styles.css - Clean Design Without Animations */
 * {
     margin: 0;
@@ -1114,6 +1089,22 @@ h1.admin-mode {
     font-weight: 400;
     position: relative;
     z-index: 2;
+}
+
+/* Enhanced room indicator */
+.room-indicator {
+    position: absolute;
+    top: 15px;
+    left: 80px; /* align on the left */
+    /* Remove transform: translateX(-50%); */
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    z-index: 3; /* make sure it's above backgrounds but below the title if needed */
+    padding: 8px 18px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    /* Add margin if needed */
 }
 
 /* === MAIN CONTENT === */

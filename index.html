@@ -36,14 +36,14 @@
                 <div id="roleSelection" style="display: none;">
                     <h3 style="color: #2E7D32; margin-bottom: 25px; font-size: 1.3rem; font-weight: 600;">Choisissez votre rôle</h3>
                     <div class="role-buttons">
+                        <button class="role-btn guest-btn" onclick="selectRole('guest')">
+                            <span style="margin-right: 8px;">🎉</span>Invité
+                        </button>
                         <button class="role-btn fanny-btn" onclick="selectRole('fanny')">
                             <span style="margin-right: 8px;">👰‍♀️</span>Fanny
                         </button>
                         <button class="role-btn nelson-btn" onclick="selectRole('nelson')">
                             <span style="margin-right: 8px;">🤵‍♂️</span>Nelson
-                        </button>
-                        <button class="role-btn guest-btn" onclick="selectRole('guest')">
-                            <span style="margin-right: 8px;">🎉</span>Invité
                         </button>
                         <button class="role-btn admin-btn" onclick="selectRole('admin')">
                             <span style="margin-right: 8px;">📺</span>Écran d'affichage
@@ -69,7 +69,7 @@
             <!-- Question Screen -->
             <div id="questionScreen" class="question-screen">
                 <div class="question-counter">
-                    Question <span id="questionNumber">1</span> sur 15
+                    Question <span id="questionNumber">1</span> sur <span id="questionTotal">15</span>
                 </div>
                 <div class="question" id="questionText"></div>
                 
@@ -98,7 +98,7 @@
             <div id="adminScreen" class="admin-screen">
                 <div class="admin-top-section">
                     <div class="question-counter admin-mode">
-                        Question <span id="adminQuestionNumber">1</span> sur 15
+                        Question <span id="adminQuestionNumber">1</span> sur <span id="adminQuestionTotal">15</span>
                     </div>
                     
                     <!-- Compact Player Status -->
@@ -171,5 +171,6 @@
     <script src="sync.js"></script>
     <script src="swipe.js"></script>
     <script src="main.js"></script>
-</body>
+    
+	</body>
 </html>

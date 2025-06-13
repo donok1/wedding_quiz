@@ -87,6 +87,10 @@ function updatePartnerUI() {
             questionNumberEl.style.transform = 'scale(1)';
         }, 200);
     }
+    
+    // Update question counter Total with animation
+    const questionTotalEl = document.getElementById('questionTotal');
+	if (questionTotalEl) questionTotalEl.textContent = questions.length;
 
     // Update question text with slide animation
     const questionTextEl = document.getElementById('questionText');
@@ -394,6 +398,9 @@ function updateAdminQuestionDisplay(currentQ) {
         adminQuestionNumber.textContent = currentQ + 1;
     }
     
+    const adminQuestionTotalEl = document.getElementById('adminQuestionTotal');
+	if (adminQuestionTotalEl) adminQuestionTotalEl.textContent = questions.length;
+    
     if (adminQuestionText && adminQuestionText.textContent !== (questions[currentQ] || '')) {
         adminQuestionText.style.transform = 'translateY(-10px)';
         adminQuestionText.style.opacity = '0.7';
@@ -469,7 +476,7 @@ function showRevealedAnswers(fannyAnswer, nelsonAnswer) {
     document.getElementById('matchResult').style.display = 'block';
     document.getElementById('nextBtn').style.display = 'block';
     
-    addGuestResultsSection(fannyAnswer, nelsonAnswer);
+    // addGuestResultsSection(fannyAnswer, nelsonAnswer);
 }
 
 function showRevealButton() {
@@ -739,7 +746,6 @@ function showFinalResults() {
 
     const matches = roomData.matches || 0;
     const compatibility = Math.round((matches / CONFIG.TOTAL_QUESTIONS) * 100);
-    const message = getCompatibilityMessage(compatibility);
 
     const adminScreen = document.getElementById('adminScreen');
     adminScreen.innerHTML = `
@@ -773,33 +779,7 @@ function showFinalResults() {
             <p style="font-size: 1.8rem; margin: 25px 0; opacity: 0.95; max-width: 600px; line-height: 1.4;">
                 Fanny et Nelson sont d'accord sur <strong>${matches}</strong> questions sur <strong>${CONFIG.TOTAL_QUESTIONS}</strong> !
             </p>
-            <p style="
-                font-size: 1.4rem; 
-                margin: 30px 0; 
-                opacity: 0.9; 
-                background: rgba(255, 255, 255, 0.1); 
-                padding: 20px; 
-                border-radius: 15px;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            ">${message}</p>
             <div style="display: flex; gap: 20px; margin-top: 40px; flex-wrap: wrap; justify-content: center;">
-                <button onclick="restartQuiz()" style="
-                    background: rgba(255, 255, 255, 0.2);
-                    color: white;
-                    border: 2px solid white;
-                    padding: 15px 30px;
-                    border-radius: 15px;
-                    font-size: 1.2rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    backdrop-filter: blur(10px);
-                    min-width: 180px;
-                " onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'" 
-                   onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'">
-                    🔄 Nouveau Quiz
-                </button>
                 <button onclick="showTopGuestMatchView()" style="
                     background: linear-gradient(135deg, #FF9800, #FFB74D);
                     color: white;
