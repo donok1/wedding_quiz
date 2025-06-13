@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Quiz de Mariage - Fanny & Nelson</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,37 +16,45 @@
         <div class="header" id="mainHeader">
             <div class="room-indicator" id="roomIndicator" style="display: none;"></div>
             <h1 id="mainTitle">Quiz de Mariage</h1>
-            <div class="subtitle" id="mainSubtitle">Fanny & Nelson 🌿 Découvrez à quel point vous vous connaissez ! 🌸</div>
+            <div class="subtitle" id="mainSubtitle">Fanny & Nelson - Découvrez à quel point vous vous connaissez !</div>
         </div>
 
         <div class="main-content" id="mainContent">
             <!-- Setup Screen -->
             <div id="setupScreen" class="setup-screen">
                 <div class="room-section">
-                    <h3>🌻 Créer ou Rejoindre une Salle 🌻</h3>
+                    <h3>Créer ou Rejoindre une Salle</h3>
                     <div class="room-input">
                         <input type="text" id="roomCodeInput" placeholder="Code de la salle (ex: MARIAGE2024)" maxlength="20">
                         <button class="action-btn" onclick="joinRoom()">Rejoindre</button>
                     </div>
-                    <p style="color: #2E7D32; margin-top: 15px;">
-                        💡 Astuce : Créez un code unique et partagez-le avec votre partenaire et l'écran d'affichage
+                    <p style="color: #2E7D32; margin-top: 15px; font-weight: 500;">
+                        💡 Créez un code unique et partagez-le avec votre partenaire et l'écran d'affichage
                     </p>
                 </div>
 
                 <div id="roleSelection" style="display: none;">
-                    <h3>🌺 Choisissez votre rôle 🌺</h3>
+                    <h3 style="color: #2E7D32; margin-bottom: 25px; font-size: 1.3rem; font-weight: 600;">Choisissez votre rôle</h3>
                     <div class="role-buttons">
-                        <button class="role-btn fanny-btn" onclick="selectRole('fanny')">Fanny</button>
-                        <button class="role-btn nelson-btn" onclick="selectRole('nelson')">Nelson</button>
-                        <button class="role-btn guest-btn" onclick="selectRole('guest')">Invité</button>
-                        <button class="role-btn admin-btn" onclick="selectRole('admin')">Écran d'affichage</button>
+                        <button class="role-btn fanny-btn" onclick="selectRole('fanny')">
+                            <span style="margin-right: 8px;">👰‍♀️</span>Fanny
+                        </button>
+                        <button class="role-btn nelson-btn" onclick="selectRole('nelson')">
+                            <span style="margin-right: 8px;">🤵‍♂️</span>Nelson
+                        </button>
+                        <button class="role-btn guest-btn" onclick="selectRole('guest')">
+                            <span style="margin-right: 8px;">🎉</span>Invité
+                        </button>
+                        <button class="role-btn admin-btn" onclick="selectRole('admin')">
+                            <span style="margin-right: 8px;">📺</span>Écran d'affichage
+                        </button>
                     </div>
                 </div>
 
                 <!-- Guest Name Input Section -->
                 <div id="guestNameSection" style="display: none;">
-                    <h3>🎉 Bienvenue, invité ! 🎉</h3>
-                    <p style="color: #2E7D32; margin-bottom: 20px;">
+                    <h3>Bienvenue, invité !</h3>
+                    <p style="color: #F57F17; margin-bottom: 20px; font-weight: 500;">
                         Entrez votre nom pour participer au quiz
                     </p>
                     <div class="guest-name-input">
@@ -69,8 +80,12 @@
 
                 <!-- Traditional answer buttons (for non-touch devices) -->
                 <div class="answer-buttons hidden" id="answerButtons">
-                    <button class="answer-btn dislike-btn" onclick="submitAnswer(false)">Je n'aime pas 🚫</button>
-                    <button class="answer-btn like-btn" onclick="submitAnswer(true)">J'aime ! 🌟</button>
+                    <button class="answer-btn dislike-btn" onclick="submitAnswer(false)">
+                        <span style="margin-right: 8px;">❌</span>Je n'aime pas
+                    </button>
+                    <button class="answer-btn like-btn" onclick="submitAnswer(true)">
+                        <span style="margin-right: 8px;">✅</span>J'aime !
+                    </button>
                 </div>
 
                 <div id="waitingMessage" class="waiting" style="display: none;">
@@ -111,7 +126,7 @@
 
                 <div id="revealSection" style="display: none;">
                     <button id="revealBtn" class="reveal-btn" onclick="revealAnswers()">
-                        Révéler les réponses 👁️
+                        <span style="margin-right: 8px;">👁️</span>Révéler les réponses
                     </button>
                 </div>
 
@@ -129,7 +144,7 @@
                 <div id="matchResult" class="match-indicator" style="display: none;"></div>
 
                 <button id="nextBtn" class="next-btn" onclick="nextQuestion()" style="display: none;">
-                    Question suivante 🌿
+                    <span style="margin-right: 8px;">➡️</span>Question suivante
                 </button>
 
                 <div id="finalResults" style="display: none;">
@@ -137,14 +152,16 @@
                         <h2>🎉 Quiz Terminé ! 🎉</h2>
                         <div class="compatibility-score" id="compatibilityScore"></div>
                         <p>Vous êtes d'accord sur <span id="matchCount"></span> questions sur 15 !</p>
-                        <button class="next-btn" onclick="restartQuiz()">Nouveau Quiz</button>
+                        <button class="next-btn" onclick="restartQuiz()">
+                            <span style="margin-right: 8px;">🔄</span>Nouveau Quiz
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Add these Firebase scripts before your existing scripts -->
+    <!-- Firebase scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="firebase-config.js"></script>

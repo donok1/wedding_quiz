@@ -1,7 +1,10 @@
-// ui.js - User Interface Management (Updated for Guests and Swipe) - FIXED WITH GUEST RESULTS
+// Enhanced ui.js - User Interface Management with Improved Visual Feedback
 
 // View mode for admin final screen: 'couple' or 'guest'
 let adminFinalResultView = 'couple';
+
+// Animation state tracking
+let currentAnimations = new Set();
 
 // Main UI update dispatcher
 function updateUI() {
@@ -20,29 +23,83 @@ function updateUI() {
     }
 }
 
-// Update UI for partner players (Fanny/Nelson/Guests)
+// Enhanced animation helper functions
+function addAnimation(element, animationName, duration = 600) {
+    if (!element) return;
+    
+    const animationId = Math.random().toString(36).substr(2, 9);
+    currentAnimations.add(animationId);
+    
+    element.style.animation = `${animationName} ${duration}ms ease-out forwards`;
+    
+    setTimeout(() => {
+        if (currentAnimations.has(animationId)) {
+            element.style.animation = '';
+            currentAnimations.delete(animationId);
+        }
+    }, duration);
+    
+    return animationId;
+}
+
+function createProgressBar(current, total) {
+    const percentage = Math.round((current / total) * 100);
+    return `
+        <div class="progress-container" style="margin: 10px 0;">
+            <div class="progress-bar" style="
+                width: 100%;
+                height: 8px;
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+                overflow: hidden;
+            ">
+                <div class="progress-fill" style="
+                    width: ${percentage}%;
+                    height: 100%;
+                    background: linear-gradient(90deg, #4CAF50, #66BB6A);
+                    border-radius: 4px;
+                    transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                "></div>
+            </div>
+            <div style="text-align: center; margin-top: 5px; font-size: 0.9rem; opacity: 0.9;">
+                ${current} / ${total}
+            </div>
+        </div>
+    `;
+}
+
+// Enhanced partner UI with better animations
 function updatePartnerUI() {
     if (roomData.gameCompleted) {
-        // Show completion message
-        const message = gameState.userRole === 'guest' 
-            ? "Merci d'avoir participé ! 🎉" 
-            : "Quiz Terminé ! 🎉";
-        
-        document.getElementById('questionScreen').innerHTML = `
-            <div class="final-results">
-                <h2>${message}</h2>
-                <p>Consultez l'écran d'affichage pour les résultats finaux !</p>
-                <button class="next-btn" onclick="location.reload()">Nouveau Jeu</button>
-            </div>
-        `;
+        showCompletionMessage();
         return;
     }
 
     const currentQ = roomData.currentQuestion;
     if (currentQ >= CONFIG.TOTAL_QUESTIONS) return;
 
-    document.getElementById('questionNumber').textContent = currentQ + 1;
-    document.getElementById('questionText').textContent = questions[currentQ];
+    // Update question counter with animation
+    const questionNumberEl = document.getElementById('questionNumber');
+    if (questionNumberEl && questionNumberEl.textContent !== (currentQ + 1).toString()) {
+        questionNumberEl.style.transform = 'scale(1.2)';
+        questionNumberEl.textContent = currentQ + 1;
+        setTimeout(() => {
+            questionNumberEl.style.transform = 'scale(1)';
+        }, 200);
+    }
+
+    // Update question text with slide animation
+    const questionTextEl = document.getElementById('questionText');
+    if (questionTextEl && questionTextEl.textContent !== questions[currentQ]) {
+        questionTextEl.style.opacity = '0';
+        questionTextEl.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            questionTextEl.textContent = questions[currentQ];
+            questionTextEl.style.opacity = '1';
+            questionTextEl.style.transform = 'translateY(0)';
+        }, 150);
+    }
 
     // Check if user has already answered this question
     let userAnswers;
@@ -64,32 +121,184 @@ function updatePartnerUI() {
     const waitingMsg = document.getElementById('waitingMessage');
 
     if (hasAnswered) {
-        // Hide all input interfaces and show waiting message
-        if (swipeContainer) swipeContainer.style.display = 'none';
-        if (answerButtons) answerButtons.style.display = 'none';
-        if (typeof hideSwipeCard === 'function') hideSwipeCard();
-        
-        // Update waiting message for guests
-        if (gameState.userRole === 'guest') {
-            waitingMsg.innerHTML = `
-                <h3>✅ Votre réponse a été enregistrée !</h3>
-                <p>En attente de la prochaine question...</p>
-            `;
-        }
-        waitingMsg.style.display = 'block';
+        // Hide input interfaces and show enhanced waiting message
+        hideInputInterfaces();
+        showWaitingMessage();
     } else {
-        // Show appropriate interface based on device and hide waiting message
-        waitingMsg.style.display = 'none';
-        
-        if (typeof updateSwipeCard === 'function') {
-            updateSwipeCard(questions[currentQ]);
-        }
-        
-        // The swipe handler will decide which interface to show based on touch capability
-        if (typeof showSwipeCard === 'function') {
-            showSwipeCard();
-        }
+        // Show appropriate interface and hide waiting message
+        showInputInterfaces(currentQ);
+        if (waitingMsg) waitingMsg.style.display = 'none';
     }
+}
+
+function hideInputInterfaces() {
+    const swipeContainer = document.getElementById('swipeContainer');
+    const answerButtons = document.getElementById('answerButtons');
+    
+    if (swipeContainer) {
+        swipeContainer.style.display = 'none';
+        swipeContainer.classList.add('hidden');
+    }
+    if (answerButtons) {
+        answerButtons.style.display = 'none';
+        answerButtons.classList.add('hidden');
+    }
+    if (typeof hideSwipeCard === 'function') {
+        hideSwipeCard();
+    }
+}
+
+function showInputInterfaces(currentQ) {
+    if (typeof updateSwipeCard === 'function') {
+        updateSwipeCard(questions[currentQ]);
+    }
+    
+    if (typeof showSwipeCard === 'function') {
+        showSwipeCard();
+    }
+}
+
+function showWaitingMessage() {
+    const waitingMsg = document.getElementById('waitingMessage');
+    if (!waitingMsg) return;
+
+    let content;
+    if (gameState.userRole === 'guest') {
+        content = `
+            <div style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px; animation: bounce 2s infinite;">✅</div>
+                <h3 style="color: #4CAF50; margin-bottom: 15px;">Réponse enregistrée !</h3>
+                <p style="color: #2E7D32;">En attente de la prochaine question...</p>
+                ${createProgressBar(roomData.currentQuestion, CONFIG.TOTAL_QUESTIONS)}
+            </div>
+        `;
+    } else {
+        content = `
+            <div style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px; animation: pulse 2s infinite;">⏳</div>
+                <h3>En attente de votre partenaire...</h3>
+                <p>Veuillez patienter pendant que votre partenaire répond à la question.</p>
+                ${createProgressBar(roomData.currentQuestion, CONFIG.TOTAL_QUESTIONS)}
+            </div>
+        `;
+    }
+
+    waitingMsg.innerHTML = content;
+    waitingMsg.style.display = 'block';
+    
+    // Add animation if not already visible
+    if (!waitingMsg.classList.contains('animated')) {
+        addAnimation(waitingMsg, 'fadeInUp');
+        waitingMsg.classList.add('animated');
+    }
+
+    // Add CSS animations if not exists
+    addWaitingAnimations();
+}
+
+function addWaitingAnimations() {
+    if (document.querySelector('#waiting-animations')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'waiting-animations';
+    style.textContent = `
+        @keyframes bounce {
+            0%, 20%, 60%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            80% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+        
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animated {
+            transition: all 0.3s ease;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function showCompletionMessage() {
+    const message = gameState.userRole === 'guest' 
+        ? "Merci d'avoir participé ! 🎉" 
+        : "Quiz Terminé ! 🎉";
+    
+    const questionScreen = document.getElementById('questionScreen');
+    if (!questionScreen) return;
+
+    questionScreen.innerHTML = `
+        <div class="final-results" style="
+            background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            animation: celebrationPop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        ">
+            <div style="font-size: 4rem; margin-bottom: 20px; animation: confetti 2s infinite;">🎉</div>
+            <h2 style="font-size: 2.5rem; margin-bottom: 30px; font-weight: 700;">${message}</h2>
+            <p style="font-size: 1.4rem; margin: 20px 0; opacity: 0.95;">
+                Consultez l'écran d'affichage pour les résultats finaux !
+            </p>
+            ${createProgressBar(CONFIG.TOTAL_QUESTIONS, CONFIG.TOTAL_QUESTIONS)}
+            <button onclick="location.reload()" style="
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 2px solid white;
+                padding: 15px 30px;
+                border-radius: 15px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                cursor: pointer;
+                margin-top: 30px;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+               onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                🔄 Nouveau Jeu
+            </button>
+        </div>
+    `;
+
+    // Add celebration animation
+    addCelebrationAnimations();
+}
+
+function addCelebrationAnimations() {
+    if (document.querySelector('#celebration-animations')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'celebration-animations';
+    style.textContent = `
+        @keyframes celebrationPop {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes confetti {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.1); }
+            75% { transform: rotate(10deg) scale(1.1); }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Helper function to get guests who match a specific answer for current question
@@ -109,41 +318,44 @@ function getGuestsWithAnswer(answer) {
     return matchingGuests;
 }
 
-// Helper function to format guest list
+// Helper function to format guest list with enhanced styling
 function formatGuestList(guests) {
     if (!guests || guests.length === 0) {
-        return '<div class="no-guests">Aucun invité</div>';
+        return '<div class="no-guests" style="opacity: 0.6; font-style: italic;">Aucun invité</div>';
     }
     
-    return guests.map(name => `<div class="guest-name-item">${name}</div>`).join('');
+    return guests.map(name => `
+        <div class="guest-name-item" style="
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #2E7D32;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            margin: 3px;
+            transition: all 0.3s ease;
+            cursor: default;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            ${name}
+        </div>
+    `).join('');
 }
 
-// Update UI for admin screen
+// Enhanced admin UI with better visual feedback
 function updateAdminUI() {
-    // SAFETY CHECKS - Ensure roomData and arrays exist
+    // Safety checks - ensure roomData and arrays exist
     if (!roomData) {
         console.warn('roomData is undefined');
         return;
     }
 
     if (roomData && roomData.gameCompleted && adminFinalResultView === 'guest') {
-        // Don't overwrite the permanent guest score view
-        return;
+        return; // Don't overwrite the permanent guest score view
     }
 
     // Initialize arrays if they don't exist
-    if (!roomData.fannyAnswers) {
-        roomData.fannyAnswers = [];
-    }
-    if (!roomData.nelsonAnswers) {
-        roomData.nelsonAnswers = [];
-    }
-    if (!roomData.guestAnswers) {
-        roomData.guestAnswers = {};
-    }
-    if (!roomData.guestNames) {
-        roomData.guestNames = [];
-    }
+    ensureArraysExist();
 
     const currentQ = roomData.currentQuestion || 0;
     
@@ -152,91 +364,170 @@ function updateAdminUI() {
         return;
     }
 
-    document.getElementById('adminQuestionNumber').textContent = currentQ + 1;
-    document.getElementById('adminQuestionText').textContent = questions[currentQ] || '';
+    // Update question display with animation
+    updateAdminQuestionDisplay(currentQ);
 
-    // SAFE ARRAY ACCESS
+    // Check if both partners have answered
     const hasFanny = roomData.fannyAnswers[currentQ] !== undefined;
     const hasNelson = roomData.nelsonAnswers[currentQ] !== undefined;
 
     if (hasFanny && hasNelson) {
-        document.getElementById('adminWaiting').style.display = 'none';
-        
-        // Prepare the answers for display
-        const fannyAnswer = roomData.fannyAnswers[currentQ];
-        const nelsonAnswer = roomData.nelsonAnswers[currentQ];
-        
-        document.getElementById('fannyAnswer').textContent = fannyAnswer ? "J'aime ! 🌟" : "Je n'aime pas 🚫";
-        document.getElementById('fannyAnswer').className = `answer-display ${fannyAnswer ? 'like-answer' : 'dislike-answer'}`;
-        
-        document.getElementById('nelsonAnswer').textContent = nelsonAnswer ? "J'aime ! 🌟" : "Je n'aime pas 🚫";
-        document.getElementById('nelsonAnswer').className = `answer-display ${nelsonAnswer ? 'like-answer' : 'dislike-answer'}`;
-        
-        const isMatch = fannyAnswer === nelsonAnswer;
-        const matchElement = document.getElementById('matchResult');
-        matchElement.textContent = isMatch ? "🎉 C'est un match !" : "💔 Pas d'accord";
-        matchElement.className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
-        
-        // Check if answers have already been revealed for this question
-        if (gameState.answersRevealed) {
-            // Show revealed answers with guest information
-            document.getElementById('revealSection').style.display = 'none';
-            document.getElementById('adminResults').style.display = 'grid';
-            document.getElementById('matchResult').style.display = 'block';
-            document.getElementById('nextBtn').style.display = 'block';
-            
-            // Add guest results below
-            addGuestResultsSection(fannyAnswer, nelsonAnswer);
-        } else {
-            // Show reveal button instead of immediately showing results
-            document.getElementById('revealSection').style.display = 'block';
-            document.getElementById('adminResults').style.display = 'none';
-            document.getElementById('matchResult').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'none';
-            
-            // Remove any existing guest results section
-            removeGuestResultsSection();
-        }
+        handleBothAnswered(currentQ);
     } else {
-        document.getElementById('adminWaiting').style.display = 'block';
-        document.getElementById('revealSection').style.display = 'none';
-        document.getElementById('adminResults').style.display = 'none';
-        document.getElementById('matchResult').style.display = 'none';
-        document.getElementById('nextBtn').style.display = 'none';
-        
-        // Remove any existing guest results section
-        removeGuestResultsSection();
+        handleWaitingForAnswers();
     }
 }
 
-// NEW: Add guest results section below the answer boxes
+function ensureArraysExist() {
+    if (!roomData.fannyAnswers) roomData.fannyAnswers = [];
+    if (!roomData.nelsonAnswers) roomData.nelsonAnswers = [];
+    if (!roomData.guestAnswers) roomData.guestAnswers = {};
+    if (!roomData.guestNames) roomData.guestNames = [];
+}
+
+function updateAdminQuestionDisplay(currentQ) {
+    const adminQuestionNumber = document.getElementById('adminQuestionNumber');
+    const adminQuestionText = document.getElementById('adminQuestionText');
+    
+    if (adminQuestionNumber && adminQuestionNumber.textContent !== (currentQ + 1).toString()) {
+        addAnimation(adminQuestionNumber, 'numberPulse', 400);
+        adminQuestionNumber.textContent = currentQ + 1;
+    }
+    
+    if (adminQuestionText && adminQuestionText.textContent !== (questions[currentQ] || '')) {
+        adminQuestionText.style.transform = 'translateY(-10px)';
+        adminQuestionText.style.opacity = '0.7';
+        
+        setTimeout(() => {
+            adminQuestionText.textContent = questions[currentQ] || '';
+            adminQuestionText.style.transform = 'translateY(0)';
+            adminQuestionText.style.opacity = '1';
+        }, 200);
+    }
+}
+
+function handleBothAnswered(currentQ) {
+    document.getElementById('adminWaiting').style.display = 'none';
+    
+    const fannyAnswer = roomData.fannyAnswers[currentQ];
+    const nelsonAnswer = roomData.nelsonAnswers[currentQ];
+    
+    // Update answer displays with enhanced styling
+    updateAnswerDisplay('fannyAnswer', fannyAnswer);
+    updateAnswerDisplay('nelsonAnswer', nelsonAnswer);
+    
+    const isMatch = fannyAnswer === nelsonAnswer;
+    updateMatchIndicator(isMatch);
+    
+    if (gameState.answersRevealed) {
+        showRevealedAnswers(fannyAnswer, nelsonAnswer);
+    } else {
+        showRevealButton();
+    }
+}
+
+function updateAnswerDisplay(elementId, answer) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const text = answer ? "J'aime ! ✅" : "Je n'aime pas ❌";
+    const className = `answer-display ${answer ? 'like-answer' : 'dislike-answer'}`;
+    
+    if (element.textContent !== text) {
+        element.style.transform = 'scale(0.9)';
+        element.style.opacity = '0.7';
+        
+        setTimeout(() => {
+            element.textContent = text;
+            element.className = className;
+            element.style.transform = 'scale(1)';
+            element.style.opacity = '1';
+        }, 150);
+    }
+}
+
+function updateMatchIndicator(isMatch) {
+    const matchElement = document.getElementById('matchResult');
+    if (!matchElement) return;
+    
+    const text = isMatch ? "🎉 C'est un match !" : "💔 Pas d'accord";
+    const className = `match-indicator ${isMatch ? 'match' : 'no-match'}`;
+    
+    if (matchElement.textContent !== text) {
+        matchElement.textContent = text;
+        matchElement.className = className;
+        
+        if (isMatch) {
+            addAnimation(matchElement, 'matchCelebration', 800);
+        }
+    }
+}
+
+function showRevealedAnswers(fannyAnswer, nelsonAnswer) {
+    document.getElementById('revealSection').style.display = 'none';
+    document.getElementById('adminResults').style.display = 'grid';
+    document.getElementById('matchResult').style.display = 'block';
+    document.getElementById('nextBtn').style.display = 'block';
+    
+    addGuestResultsSection(fannyAnswer, nelsonAnswer);
+}
+
+function showRevealButton() {
+    document.getElementById('revealSection').style.display = 'block';
+    document.getElementById('adminResults').style.display = 'none';
+    document.getElementById('matchResult').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    
+    removeGuestResultsSection();
+}
+
+function handleWaitingForAnswers() {
+    document.getElementById('adminWaiting').style.display = 'block';
+    document.getElementById('revealSection').style.display = 'none';
+    document.getElementById('adminResults').style.display = 'none';
+    document.getElementById('matchResult').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    
+    removeGuestResultsSection();
+}
+
+// Add guest results section with enhanced styling
 function addGuestResultsSection(fannyAnswer, nelsonAnswer) {
-    // Remove any existing guest results section first
     removeGuestResultsSection();
     
     const isMatch = fannyAnswer === nelsonAnswer;
-    
-    // Create the guest results section
     const guestSection = document.createElement('div');
     guestSection.id = 'guestResultsSection';
     guestSection.className = 'guest-results-section';
+    guestSection.style.animation = 'slideInUp 0.6s ease-out';
     
     if (isMatch) {
-        // When bride and groom match, show a single centered list
         guestSection.classList.add('match-layout');
-        
         const matchingGuests = getGuestsWithAnswer(fannyAnswer);
         
         const matchColumn = document.createElement('div');
         matchColumn.className = 'guest-column match-column';
         matchColumn.innerHTML = `
-            <div class="guest-column-header match-header">Invités qui sont d'accord avec le couple</div>
-            <div class="guest-names-list horizontal">${formatGuestList(matchingGuests)}</div>
+            <div class="guest-column-header match-header" style="
+                background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                color: white;
+                padding: 10px;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                font-weight: 600;
+            ">
+                🤝 Invités qui sont d'accord avec le couple
+            </div>
+            <div class="guest-names-list horizontal" style="
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            ">${formatGuestList(matchingGuests)}</div>
         `;
         
         guestSection.appendChild(matchColumn);
     } else {
-        // When bride and groom don't match, show two columns
         const guestsLikeFanny = getGuestsWithAnswer(fannyAnswer);
         const guestsLikeNelson = getGuestsWithAnswer(nelsonAnswer);
         
@@ -244,44 +535,120 @@ function addGuestResultsSection(fannyAnswer, nelsonAnswer) {
         const fannyColumn = document.createElement('div');
         fannyColumn.className = 'guest-column';
         fannyColumn.innerHTML = `
-            <div class="guest-column-header">Invités comme Fanny</div>
-            <div class="guest-names-list">${formatGuestList(guestsLikeFanny)}</div>
+            <div class="guest-column-header" style="
+                background: linear-gradient(135deg, #E91E63, #F06292);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+                font-weight: 600;
+                text-align: center;
+            ">
+                👰‍♀️ Team Fanny
+            </div>
+            <div class="guest-names-list" style="
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            ">${formatGuestList(guestsLikeFanny)}</div>
         `;
         
         // Nelson's column
         const nelsonColumn = document.createElement('div');
         nelsonColumn.className = 'guest-column';
         nelsonColumn.innerHTML = `
-            <div class="guest-column-header">Invités comme Nelson</div>
-            <div class="guest-names-list">${formatGuestList(guestsLikeNelson)}</div>
+            <div class="guest-column-header" style="
+                background: linear-gradient(135deg, #2196F3, #64B5F6);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+                font-weight: 600;
+                text-align: center;
+            ">
+                🤵‍♂️ Team Nelson
+            </div>
+            <div class="guest-names-list" style="
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            ">${formatGuestList(guestsLikeNelson)}</div>
         `;
         
         guestSection.appendChild(fannyColumn);
         guestSection.appendChild(nelsonColumn);
     }
     
-    // Insert the guest section into the admin screen
+    // Insert with animation
     const adminScreen = document.getElementById('adminScreen');
     adminScreen.appendChild(guestSection);
     
-    // Adjust match indicator position if there are guests
+    // Adjust match indicator position
+    adjustMatchIndicatorPosition(isMatch, fannyAnswer, nelsonAnswer);
+    
+    // Add slide animation if not exists
+    addSlideAnimations();
+}
+
+function adjustMatchIndicatorPosition(isMatch, fannyAnswer, nelsonAnswer) {
     const matchElement = document.getElementById('matchResult');
-    const hasGuests = isMatch ? getGuestsWithAnswer(fannyAnswer).length > 0 : 
-                                (getGuestsWithAnswer(fannyAnswer).length > 0 || 
-                                 getGuestsWithAnswer(nelsonAnswer).length > 0);
+    if (!matchElement) return;
+    
+    const hasGuests = isMatch ? 
+        getGuestsWithAnswer(fannyAnswer).length > 0 : 
+        (getGuestsWithAnswer(fannyAnswer).length > 0 || getGuestsWithAnswer(nelsonAnswer).length > 0);
     
     if (hasGuests) {
         matchElement.classList.add('with-guests');
+        matchElement.style.background = 'rgba(255, 255, 255, 0.95)';
+        matchElement.style.backdropFilter = 'blur(10px)';
+        matchElement.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1)';
     } else {
         matchElement.classList.remove('with-guests');
     }
 }
 
-// NEW: Remove guest results section
+function addSlideAnimations() {
+    if (document.querySelector('#slide-animations')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'slide-animations';
+    style.textContent = `
+        @keyframes slideInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes numberPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes matchCelebration {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1) rotate(-2deg); }
+            75% { transform: scale(1.1) rotate(2deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Remove guest results section
 function removeGuestResultsSection() {
     const existingSection = document.getElementById('guestResultsSection');
     if (existingSection) {
-        existingSection.remove();
+        existingSection.style.animation = 'slideOutDown 0.3s ease-in';
+        setTimeout(() => {
+            if (existingSection.parentNode) {
+                existingSection.remove();
+            }
+        }, 300);
     }
     
     // Reset match indicator position
@@ -291,44 +658,79 @@ function removeGuestResultsSection() {
     }
 }
 
-// Update player connection and answer status
+// Enhanced player status update with visual indicators
 function updatePlayerStatus() {
     if (gameState.userRole !== 'admin') return;
 
     const fannyConnected = isPlayerConnected('fanny');
     const nelsonConnected = isPlayerConnected('nelson');
-
     const currentQ = roomData.currentQuestion || 0;
     
-    // SAFE ARRAY ACCESS
     const fannyAnswered = (roomData.fannyAnswers && roomData.fannyAnswers[currentQ] !== undefined) || false;
     const nelsonAnswered = (roomData.nelsonAnswers && roomData.nelsonAnswers[currentQ] !== undefined) || false;
 
-    // Update compact status for Fanny
-    let fannyStatusText = fannyConnected ? '🟢' : '🔴';
-    fannyStatusText += ' ' + (fannyAnswered ? '✅' : '⏳');
-    document.getElementById('fannyStatus').textContent = fannyStatusText;
-    document.getElementById('fannyStatus').className = `status-indicator ${fannyConnected ? 'connected-status' : 'disconnected-status'}`;
-
-    // Update compact status for Nelson
-    let nelsonStatusText = nelsonConnected ? '🟢' : '🔴';
-    nelsonStatusText += ' ' + (nelsonAnswered ? '✅' : '⏳');
-    document.getElementById('nelsonStatus').textContent = nelsonStatusText;
-    document.getElementById('nelsonStatus').className = `status-indicator ${nelsonConnected ? 'connected-status' : 'disconnected-status'}`;
-
-    // Update guest status
-    const connectedGuests = getConnectedGuestsCount();
-    const answeredGuests = getGuestsAnsweredCount();
-    const totalGuests = (roomData.guestNames && roomData.guestNames.length) || 0;
+    // Update Fanny status with enhanced indicators
+    updatePlayerStatusIndicator('fannyStatus', fannyConnected, fannyAnswered, 'fanny');
     
-    let guestStatusText = connectedGuests > 0 ? '🟢' : '🔴';
-    guestStatusText += ` ${answeredGuests}/${connectedGuests}`;
-    
-    document.getElementById('guestStatus').textContent = guestStatusText;
-    document.getElementById('guestStatus').className = `status-indicator ${connectedGuests > 0 ? 'connected-status' : 'disconnected-status'}`;
+    // Update Nelson status with enhanced indicators
+    updatePlayerStatusIndicator('nelsonStatus', nelsonConnected, nelsonAnswered, 'nelson');
+
+    // Update guest status with detailed info
+    updateGuestStatusIndicator();
 }
 
-// Show final results screen
+function updatePlayerStatusIndicator(elementId, connected, answered, playerName) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    let statusIcon = connected ? '🟢' : '🔴';
+    let actionIcon = answered ? '✅' : '⏳';
+    let statusText = `${statusIcon} ${actionIcon}`;
+    
+    if (element.textContent !== statusText) {
+        element.textContent = statusText;
+        
+        // Add visual feedback
+        if (answered && !element.classList.contains('answered')) {
+            element.classList.add('answered');
+            addAnimation(element, 'statusComplete', 500);
+        } else if (!answered) {
+            element.classList.remove('answered');
+        }
+        
+        element.className = `status-indicator ${connected ? 'connected-status' : 'disconnected-status'}`;
+        
+        if (answered) {
+            element.style.background = '#DCEDC8';
+            element.style.color = '#33691E';
+            element.style.fontWeight = 'bold';
+        }
+    }
+}
+
+function updateGuestStatusIndicator() {
+    const element = document.getElementById('guestStatus');
+    if (!element) return;
+    
+    const connectedGuests = getConnectedGuestsCount();
+    const answeredGuests = getGuestsAnsweredCount();
+    
+    let statusIcon = connectedGuests > 0 ? '🟢' : '🔴';
+    let statusText = `${statusIcon} ${answeredGuests}/${connectedGuests}`;
+    
+    if (element.textContent !== statusText) {
+        element.textContent = statusText;
+        element.className = `status-indicator ${connectedGuests > 0 ? 'connected-status' : 'disconnected-status'}`;
+        
+        // Add progress indicator for guests
+        if (connectedGuests > 0) {
+            const progressPercent = Math.round((answeredGuests / connectedGuests) * 100);
+            element.style.background = `linear-gradient(90deg, #DCEDC8 ${progressPercent}%, #FFF9C4 ${progressPercent}%)`;
+        }
+    }
+}
+
+// Enhanced final results with better animations
 function showFinalResults() {
     if (adminFinalResultView === 'guest') {
         showTopGuestMatchView();
@@ -337,54 +739,217 @@ function showFinalResults() {
 
     const matches = roomData.matches || 0;
     const compatibility = Math.round((matches / CONFIG.TOTAL_QUESTIONS) * 100);
+    const message = getCompatibilityMessage(compatibility);
 
-    document.getElementById('adminScreen').innerHTML = `
-        <div class="final-results">
-            <h2>🎉 Quiz Terminé ! 🎉</h2>
-            <div class="compatibility-score">${compatibility}%</div>
-            <p>Fanny et Nelson sont d'accord sur <strong>${matches}</strong> questions sur <strong>${CONFIG.TOTAL_QUESTIONS}</strong> !</p>
-            <p>${getCompatibilityMessage(compatibility)}</p>
-            <button class="next-btn" onclick="restartQuiz()">Nouveau Quiz</button>
-            <button class="next-btn" style="margin-top:30px;" onclick="showTopGuestMatchView()">Révéler les scores invités 👑</button>
+    const adminScreen = document.getElementById('adminScreen');
+    adminScreen.innerHTML = `
+        <div class="final-results" style="
+            background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 60px 40px;
+            animation: finalReveal 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        ">
+            <div style="font-size: 4rem; margin-bottom: 30px; animation: confettiCelebration 2s infinite;">🎉</div>
+            <h2 style="font-size: 3.5rem; margin-bottom: 40px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                Quiz Terminé !
+            </h2>
+            <div style="
+                font-size: 6rem; 
+                font-weight: bold; 
+                margin: 40px 0; 
+                text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+                animation: scoreReveal 1.5s ease-out 0.5s both;
+            ">${compatibility}%</div>
+            <p style="font-size: 1.8rem; margin: 25px 0; opacity: 0.95; max-width: 600px; line-height: 1.4;">
+                Fanny et Nelson sont d'accord sur <strong>${matches}</strong> questions sur <strong>${CONFIG.TOTAL_QUESTIONS}</strong> !
+            </p>
+            <p style="
+                font-size: 1.4rem; 
+                margin: 30px 0; 
+                opacity: 0.9; 
+                background: rgba(255, 255, 255, 0.1); 
+                padding: 20px; 
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            ">${message}</p>
+            <div style="display: flex; gap: 20px; margin-top: 40px; flex-wrap: wrap; justify-content: center;">
+                <button onclick="restartQuiz()" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                    border: 2px solid white;
+                    padding: 15px 30px;
+                    border-radius: 15px;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    backdrop-filter: blur(10px);
+                    min-width: 180px;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'" 
+                   onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'">
+                    🔄 Nouveau Quiz
+                </button>
+                <button onclick="showTopGuestMatchView()" style="
+                    background: linear-gradient(135deg, #FF9800, #FFB74D);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 15px;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+                    min-width: 180px;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(255, 152, 0, 0.5)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(255, 152, 0, 0.4)'">
+                    👑 Scores Invités
+                </button>
+            </div>
         </div>
     `;
+
+    // Add final animations
+    addFinalAnimations();
 }
 
+function addFinalAnimations() {
+    if (document.querySelector('#final-animations')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'final-animations';
+    style.textContent = `
+        @keyframes finalReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes scoreReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotate(-10deg);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.1) rotate(5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        @keyframes confettiCelebration {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1); 
+                filter: hue-rotate(0deg);
+            }
+            25% { 
+                transform: rotate(-15deg) scale(1.1); 
+                filter: hue-rotate(90deg);
+            }
+            75% { 
+                transform: rotate(15deg) scale(1.1); 
+                filter: hue-rotate(180deg);
+            }
+        }
+        
+        @keyframes statusComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); background: #4CAF50; }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes slideOutDown {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
 
-
-// Connection status management
+// Enhanced connection status with better visual feedback
 function updateConnectionStatus(connected) {
     gameState.isConnected = connected;
     const statusEl = document.getElementById('connectionStatus');
+    if (!statusEl) return;
+    
+    const wasConnected = statusEl.classList.contains('connected');
+    
     if (connected) {
         statusEl.textContent = '🟢 Connecté';
         statusEl.className = 'connection-status connected';
+        
+        if (!wasConnected) {
+            addAnimation(statusEl, 'connectionEstablished', 600);
+        }
     } else {
         statusEl.textContent = '🔴 Déconnecté';
         statusEl.className = 'connection-status disconnected';
+        
+        if (wasConnected) {
+            addAnimation(statusEl, 'connectionLost', 600);
+        }
     }
 }
 
-// Room indicator
+// Enhanced room indicator
 function updateRoomIndicator() {
     const indicator = document.getElementById('roomIndicator');
-    if (gameState.roomCode) {
-        indicator.textContent = `Salle: ${gameState.roomCode}`;
-        indicator.style.display = 'block';
-    }
+    if (!indicator || !gameState.roomCode) return;
+    
+    indicator.textContent = `Salle: ${gameState.roomCode}`;
+    indicator.style.display = 'block';
+    addAnimation(indicator, 'indicatorSlideIn', 500);
 }
 
-// Error message display
+// Enhanced error message with better styling
 function showError(message) {
     const errorEl = document.getElementById('errorMessage');
-    errorEl.textContent = message;
+    if (!errorEl) return;
+    
+    errorEl.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">⚠️</span>
+            <span>${message}</span>
+        </div>
+    `;
     errorEl.style.display = 'block';
+    addAnimation(errorEl, 'errorShake', 500);
+    
     setTimeout(() => {
-        errorEl.style.display = 'none';
+        errorEl.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            errorEl.style.display = 'none';
+            errorEl.style.animation = '';
+        }, 300);
     }, 5000);
 }
 
-// --- Compute guest matching ratios ---
+// Compute guest matching ratios (existing function, no changes needed)
 function getGuestMatchingRatios() {
     const guestRatios = [];
     const totalQuestions = CONFIG.TOTAL_QUESTIONS;
@@ -405,7 +970,6 @@ function getGuestMatchingRatios() {
                 if (typeof nelson[i] !== "undefined" && answers[i] === nelson[i]) matchNelson++;
             }
         }
-        // Avoid showing guests that didn't answer anything
         if (countAnswered > 0) {
             guestRatios.push({
                 name,
@@ -417,7 +981,7 @@ function getGuestMatchingRatios() {
     return guestRatios;
 }
 
-// --- Render the top 10 guests matching view ---
+// Enhanced top guest matching view
 function showTopGuestMatchView() {
     adminFinalResultView = 'guest';
 
@@ -425,55 +989,175 @@ function showTopGuestMatchView() {
     const topFanny = [...guestRatios].sort((a, b) => b.fannyScore - a.fannyScore).slice(0, 10);
     const topNelson = [...guestRatios].sort((a, b) => b.nelsonScore - a.nelsonScore).slice(0, 10);
 
-    let fannyCol = '<div class="guest-match-col"><h3>👰‍♀️ Top 10 Fanny</h3>';
-    fannyCol += '<ol class="guest-match-list">';
+    let fannyCol = `
+        <div class="guest-match-col" style="
+            background: linear-gradient(135deg, rgba(233, 30, 99, 0.1), rgba(240, 98, 146, 0.1));
+            border: 2px solid #E91E63;
+        ">
+            <h3 style="color: #E91E63; text-align: center; margin-bottom: 20px; font-size: 1.4rem;">
+                👰‍♀️ Top 10 - Team Fanny
+            </h3>
+            <ol class="guest-match-list">`;
+    
     for (const guest of topFanny) {
-        fannyCol += `<li><strong>${guest.name}</strong> <span class="score">${guest.fannyScore}%</span></li>`;
+        fannyCol += `
+            <li style="
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                padding: 8px 0; 
+                border-bottom: 1px solid rgba(233, 30, 99, 0.1);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(233, 30, 99, 0.05)'; this.style.transform='translateX(5px)'"
+               onmouseout="this.style.background='transparent'; this.style.transform='translateX(0)'">
+                <strong>${guest.name}</strong>
+                <span class="score" style="
+                    background: linear-gradient(135deg, #E91E63, #F06292);
+                    color: white;
+                    padding: 4px 12px;
+                    border-radius: 15px;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                ">${guest.fannyScore}%</span>
+            </li>`;
     }
     fannyCol += '</ol></div>';
 
-    let nelsonCol = '<div class="guest-match-col"><h3>🤵‍♂️ Top 10 Nelson</h3>';
-    nelsonCol += '<ol class="guest-match-list">';
+    let nelsonCol = `
+        <div class="guest-match-col" style="
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(100, 181, 246, 0.1));
+            border: 2px solid #2196F3;
+        ">
+            <h3 style="color: #2196F3; text-align: center; margin-bottom: 20px; font-size: 1.4rem;">
+                🤵‍♂️ Top 10 - Team Nelson
+            </h3>
+            <ol class="guest-match-list">`;
+    
     for (const guest of topNelson) {
-        nelsonCol += `<li><strong>${guest.name}</strong> <span class="score">${guest.nelsonScore}%</span></li>`;
+        nelsonCol += `
+            <li style="
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                padding: 8px 0; 
+                border-bottom: 1px solid rgba(33, 150, 243, 0.1);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(33, 150, 243, 0.05)'; this.style.transform='translateX(5px)'"
+               onmouseout="this.style.background='transparent'; this.style.transform='translateX(0)'">
+                <strong>${guest.name}</strong>
+                <span class="score" style="
+                    background: linear-gradient(135deg, #2196F3, #64B5F6);
+                    color: white;
+                    padding: 4px 12px;
+                    border-radius: 15px;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                ">${guest.nelsonScore}%</span>
+            </li>`;
     }
     nelsonCol += '</ol></div>';
 
     const html = `
-        <div class="top-guest-matching-view">
-            <h2>🏆 Meilleurs invités compatibles</h2>
-            <div class="guest-match-columns">
+        <div class="top-guest-matching-view" style="
+            padding: 40px 20px;
+            text-align: center;
+            color: #2E7D32;
+            animation: guestViewSlideIn 0.8s ease-out;
+        ">
+            <h2 style="
+                font-size: 2.8rem;
+                margin-bottom: 40px;
+                font-weight: 700;
+                background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">🏆 Meilleurs invités compatibles</h2>
+            <div class="guest-match-columns" style="
+                display: flex;
+                justify-content: center;
+                gap: 60px;
+                margin-top: 30px;
+                flex-wrap: wrap;
+            ">
                 ${fannyCol}
                 ${nelsonCol}
             </div>
-            <button class="next-btn" style="position:static;margin-top:40px;" onclick="showAdminFinalResults()">Retour au score du couple</button>
+            <button onclick="showAdminFinalResults()" style="
+                background: linear-gradient(135deg, #66BB6A, #4CAF50);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                border-radius: 15px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                cursor: pointer;
+                margin-top: 40px;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 35px rgba(76, 175, 80, 0.4)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(76, 175, 80, 0.3)'">
+                ← Retour au score du couple
+            </button>
         </div>
     `;
+    
     document.getElementById('adminScreen').innerHTML = html;
+    
+    // Add guest view animations
+    addGuestViewAnimations();
 }
 
+function addGuestViewAnimations() {
+    if (document.querySelector('#guest-view-animations')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'guest-view-animations';
+    style.textContent = `
+        @keyframes guestViewSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes indicatorSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        @keyframes connectionEstablished {
+            0% { background: rgba(255, 205, 210, 0.9); transform: scale(0.9); }
+            50% { background: rgba(200, 230, 201, 1); transform: scale(1.05); }
+            100% { background: rgba(200, 230, 201, 0.9); transform: scale(1); }
+        }
+        
+        @keyframes connectionLost {
+            0% { background: rgba(200, 230, 201, 0.9); transform: scale(1); }
+            50% { background: rgba(255, 205, 210, 1); transform: scale(1.05); }
+            100% { background: rgba(255, 205, 210, 0.9); transform: scale(1); }
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
 
 // Helper to go back to normal results
 function showAdminFinalResults() {
     adminFinalResultView = 'couple';
     showFinalResults();
 }
-
-// --- Insert styles for the new view ---
-(function injectGuestMatchingStyles() {
-    if (document.getElementById('guest-matching-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'guest-matching-styles';
-    style.innerHTML = `
-    .top-guest-matching-view { padding:40px 0; text-align:center; color:#2E7D32; }
-    .top-guest-matching-view h2 { font-size:2.3rem; margin-bottom:30px;}
-    .guest-match-columns { display:flex; justify-content:center; gap:60px; margin-top:30px;}
-    .guest-match-col { background:rgba(255,255,255,0.92); border-radius:15px; padding:28px 32px; min-width:300px; box-shadow:0 4px 20px #c8e6c980;}
-    .guest-match-col h3 { margin-bottom:16px; font-size:1.3rem; color:#E91E63; }
-    .guest-match-col:last-child h3 { color:#2196F3;}
-    .guest-match-list { list-style:decimal; margin:0; padding:0 0 0 18px;}
-    .guest-match-list li { font-size:1.15rem; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center;}
-    .score { font-weight:bold; color:#4CAF50; font-size:1.1em; margin-left:18px;}
-    `;
-    document.head.appendChild(style);
-})();

@@ -1,4 +1,4 @@
-// swipe.js - Tinder-like Swipe Functionality
+// Enhanced swipe.js - Improved Tinder-like Swipe Functionality
 
 class SwipeHandler {
     constructor() {
@@ -11,6 +11,7 @@ class SwipeHandler {
         this.card = null;
         this.answered = false;
         this.isTouchDevice = this.detectTouchDevice();
+        this.animationId = null;
         this.log('SwipeHandler initialized - Touch device:', this.isTouchDevice);
     }
 
@@ -67,9 +68,9 @@ class SwipeHandler {
             swipeContainer.className = 'swipe-container hidden';
             swipeContainer.id = 'swipeContainer';
             
-            var questionCounter = questionScreen.querySelector('.question-counter');
-            if (questionCounter) {
-                questionCounter.parentNode.insertBefore(swipeContainer, questionCounter.nextSibling);
+            var questionElement = questionScreen.querySelector('.question');
+            if (questionElement) {
+                questionElement.parentNode.insertBefore(swipeContainer, questionElement.nextSibling);
             } else {
                 questionScreen.appendChild(swipeContainer);
             }
@@ -78,15 +79,68 @@ class SwipeHandler {
         var questionTextElement = document.getElementById('questionText');
         var currentQuestion = questionTextElement ? questionTextElement.textContent : 'Question en cours...';
 
-        swipeContainer.innerHTML = '<div class="swipe-card" id="swipeCard">' +
-            '<div class="card-content">' +
-            '<div class="card-question">' + currentQuestion + '</div>' +
-            '<div class="card-instruction">👈 Je n\'aime pas &nbsp;&nbsp;&nbsp;&nbsp; J\'aime 👉</div>' +
-            '</div>' +
-            '</div>';
+        swipeContainer.innerHTML = `
+            <div class="swipe-card" id="swipeCard">
+                <div class="card-content">
+                    <div class="card-icon">❓</div>
+                    <div class="card-question">${currentQuestion}</div>
+                    <div class="card-instruction">👈 Je n'aime pas &nbsp;&nbsp;&nbsp;&nbsp; J'aime 👉</div>
+                </div>
+                <div class="swipe-indicators">
+                    <div class="swipe-hint dislike-hint">
+                        <span>❌</span>
+                        <span>Non</span>
+                    </div>
+                    <div class="swipe-hint like-hint">
+                        <span>Oui</span>
+                        <span>✅</span>
+                    </div>
+                </div>
+            </div>
+        `;
 
         this.card = document.getElementById('swipeCard');
         this.log('Swipe card created: ' + (this.card ? 'success' : 'failed'));
+        
+        // Add card icon animation
+        this.addCardIconAnimation();
+    }
+
+    addCardIconAnimation() {
+        if (!this.card) return;
+        
+        const icon = this.card.querySelector('.card-icon');
+        if (icon) {
+            // Add CSS for icon animation if not exists
+            if (!document.querySelector('#swipe-icon-styles')) {
+                const style = document.createElement('style');
+                style.id = 'swipe-icon-styles';
+                style.textContent = `
+                    .card-icon {
+                        font-size: 4rem;
+                        margin-bottom: 20px;
+                        transition: transform 0.3s ease;
+                        animation: iconFloat 3s ease-in-out infinite;
+                    }
+                    
+                    @keyframes iconFloat {
+                        0%, 100% { transform: translateY(0px); }
+                        50% { transform: translateY(-10px); }
+                    }
+                    
+                    .swipe-card.like-preview .card-icon {
+                        transform: scale(1.2) rotate(10deg);
+                        filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.6));
+                    }
+                    
+                    .swipe-card.dislike-preview .card-icon {
+                        transform: scale(1.2) rotate(-10deg);
+                        filter: drop-shadow(0 0 10px rgba(244, 67, 54, 0.6));
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
     }
 
     showSwipeInterface() {
@@ -145,6 +199,7 @@ class SwipeHandler {
         this.log('Attaching event listeners');
         var self = this;
 
+        // Touch events
         this.card.addEventListener('touchstart', function(e) {
             self.handleStart(e);
         }, { passive: false });
@@ -157,6 +212,7 @@ class SwipeHandler {
             self.handleEnd(e);
         });
 
+        // Mouse events for desktop testing
         this.card.addEventListener('mousedown', function(e) {
             self.handleStart(e);
         });
@@ -169,9 +225,28 @@ class SwipeHandler {
             self.handleEnd(e);
         });
 
+        // Prevent default drag behavior
         this.card.addEventListener('dragstart', function(e) {
             e.preventDefault();
         });
+
+        // Add keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (self.card && !self.answered) {
+                if (e.key === 'ArrowLeft') {
+                    self.simulateSwipe(false);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowRight') {
+                    self.simulateSwipe(true);
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+
+    simulateSwipe(isLike) {
+        this.log('Simulating swipe: ' + (isLike ? 'LIKE' : 'DISLIKE'));
+        this.completeSwipe(isLike);
     }
 
     handleStart(e) {
@@ -189,6 +264,11 @@ class SwipeHandler {
         this.currentX = clientX;
         this.currentY = clientY;
 
+        // Add haptic feedback on supported devices
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+
         e.preventDefault();
     }
 
@@ -201,29 +281,64 @@ class SwipeHandler {
         this.currentX = clientX;
         this.currentY = clientY;
 
+        this.updateCardPosition();
+        e.preventDefault();
+    }
+
+    updateCardPosition() {
+        if (!this.card) return;
+
         var deltaX = this.currentX - this.startX;
         var deltaY = this.currentY - this.startY;
 
         var rotation = deltaX * 0.1;
-        var opacity = Math.max(0.7, 1 - Math.abs(deltaX) / 300);
+        var scale = Math.max(0.95, 1 - Math.abs(deltaX) / 1000);
+        var opacity = Math.max(0.8, 1 - Math.abs(deltaX) / 300);
 
-        this.card.style.transform = 'translateX(' + deltaX + 'px) translateY(' + deltaY + 'px) rotate(' + rotation + 'deg)';
+        this.card.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotation}deg) scale(${scale})`;
         this.card.style.opacity = opacity;
 
+        // Visual feedback based on swipe direction
         if (Math.abs(deltaX) > this.swipeThreshold / 2) {
             if (deltaX > 0) {
-                this.card.style.borderColor = '#4CAF50';
-                this.card.style.background = 'linear-gradient(135deg, #C8E6C9, #A5D6A7)';
+                this.card.classList.add('like-preview');
+                this.card.classList.remove('dislike-preview');
             } else {
-                this.card.style.borderColor = '#F44336';
-                this.card.style.background = 'linear-gradient(135deg, #FFCDD2, #EF9A9A)';
+                this.card.classList.add('dislike-preview');
+                this.card.classList.remove('like-preview');
             }
         } else {
-            this.card.style.borderColor = 'rgba(76, 175, 80, 0.3)';
-            this.card.style.background = 'linear-gradient(135deg, #E8F5E8, #C8E6C9)';
+            this.card.classList.remove('like-preview', 'dislike-preview');
         }
 
-        e.preventDefault();
+        // Update hint visibility
+        this.updateHints(deltaX);
+    }
+
+    updateHints(deltaX) {
+        const likeHint = this.card.querySelector('.like-hint');
+        const dislikeHint = this.card.querySelector('.dislike-hint');
+        
+        if (likeHint && dislikeHint) {
+            if (Math.abs(deltaX) > this.swipeThreshold / 2) {
+                if (deltaX > 0) {
+                    likeHint.style.opacity = '1';
+                    likeHint.style.transform = 'scale(1.1)';
+                    dislikeHint.style.opacity = '0.5';
+                    dislikeHint.style.transform = 'scale(1)';
+                } else {
+                    dislikeHint.style.opacity = '1';
+                    dislikeHint.style.transform = 'scale(1.1)';
+                    likeHint.style.opacity = '0.5';
+                    likeHint.style.transform = 'scale(1)';
+                }
+            } else {
+                likeHint.style.opacity = '0.7';
+                likeHint.style.transform = 'scale(1)';
+                dislikeHint.style.opacity = '0.7';
+                dislikeHint.style.transform = 'scale(1)';
+            }
+        }
     }
 
     handleEnd(e) {
@@ -249,11 +364,16 @@ class SwipeHandler {
         this.answered = true;
         
         var direction = isLike ? 1 : -1;
-        var exitX = direction * (window.innerWidth + 100);
+        var exitX = direction * (window.innerWidth + 200);
         var exitRotation = direction * 30;
 
-        this.card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-        this.card.style.transform = 'translateX(' + exitX + 'px) rotate(' + exitRotation + 'deg)';
+        // Add haptic feedback
+        if (navigator.vibrate) {
+            navigator.vibrate([50, 10, 50]);
+        }
+
+        this.card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease-out';
+        this.card.style.transform = `translateX(${exitX}px) rotate(${exitRotation}deg) scale(0.8)`;
         this.card.style.opacity = '0';
 
         this.showSwipeFeedback(isLike);
@@ -261,32 +381,110 @@ class SwipeHandler {
         var self = this;
         setTimeout(function() {
             self.submitAnswer(isLike);
-        }, 300);
+        }, 400);
     }
 
     resetCard() {
-        this.card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out, background 0.3s ease-out, border-color 0.3s ease-out';
-        this.card.style.transform = 'translateX(0px) translateY(0px) rotate(0deg)';
+        this.card.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        this.card.style.transform = 'translateX(0px) translateY(0px) rotate(0deg) scale(1)';
         this.card.style.opacity = '1';
-        this.card.style.borderColor = 'rgba(76, 175, 80, 0.3)';
-        this.card.style.background = 'linear-gradient(135deg, #E8F5E8, #C8E6C9)';
+        this.card.classList.remove('like-preview', 'dislike-preview');
+
+        // Reset hints
+        const hints = this.card.querySelectorAll('.swipe-hint');
+        hints.forEach(hint => {
+            hint.style.opacity = '0.7';
+            hint.style.transform = 'scale(1)';
+        });
 
         var self = this;
         setTimeout(function() {
-            self.card.style.transition = '';
-        }, 300);
+            if (self.card) {
+                self.card.style.transition = '';
+            }
+        }, 400);
     }
 
     showSwipeFeedback(isLike) {
         var feedback = document.createElement('div');
         feedback.className = 'swipe-feedback ' + (isLike ? 'like-feedback' : 'dislike-feedback');
-        feedback.innerHTML = '<div class="feedback-icon">' + (isLike ? '💚' : '💔') + '</div>' +
-            '<div class="feedback-text">' + (isLike ? 'J\'aime !' : 'Je n\'aime pas') + '</div>';
+        feedback.innerHTML = `
+            <div class="feedback-icon">${isLike ? '✅' : '❌'}</div>
+            <div class="feedback-text">${isLike ? 'J\'aime !' : 'Je n\'aime pas'}</div>
+        `;
 
+        // Add styles if not exists
         if (!document.querySelector('.swipe-feedback-styles')) {
             var style = document.createElement('style');
             style.className = 'swipe-feedback-styles';
-            style.textContent = '.swipe-feedback { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); z-index: 1000; animation: feedbackPop 0.6s ease-out forwards; } .feedback-icon { font-size: 3rem; margin-bottom: 10px; } .feedback-text { font-size: 1.2rem; font-weight: bold; color: #2E7D32; } .like-feedback { border: 3px solid #4CAF50; } .dislike-feedback { border: 3px solid #F44336; } .dislike-feedback .feedback-text { color: #D32F2F; } @keyframes feedbackPop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }';
+            style.textContent = `
+                .swipe-feedback {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(255, 255, 255, 0.98);
+                    backdrop-filter: blur(20px);
+                    border-radius: 20px;
+                    padding: 40px;
+                    text-align: center;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+                    z-index: 1000;
+                    animation: feedbackPop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+                    border: 3px solid;
+                }
+                
+                .like-feedback {
+                    border-color: #4CAF50;
+                }
+                
+                .dislike-feedback {
+                    border-color: #F44336;
+                }
+                
+                .feedback-icon {
+                    font-size: 4rem;
+                    margin-bottom: 15px;
+                    animation: iconBounce 0.6s ease-out;
+                }
+                
+                .feedback-text {
+                    font-size: 1.4rem;
+                    font-weight: 600;
+                    color: #2E7D32;
+                }
+                
+                .dislike-feedback .feedback-text {
+                    color: #D32F2F;
+                }
+                
+                @keyframes feedbackPop {
+                    0% {
+                        transform: translate(-50%, -50%) scale(0.5);
+                        opacity: 0;
+                    }
+                    50% {
+                        transform: translate(-50%, -50%) scale(1.1);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translate(-50%, -50%) scale(1);
+                        opacity: 1;
+                    }
+                }
+                
+                @keyframes iconBounce {
+                    0%, 20%, 60%, 100% {
+                        transform: translateY(0);
+                    }
+                    40% {
+                        transform: translateY(-20px);
+                    }
+                    80% {
+                        transform: translateY(-10px);
+                    }
+                }
+            `;
             document.head.appendChild(style);
         }
 
@@ -294,7 +492,12 @@ class SwipeHandler {
 
         setTimeout(function() {
             if (feedback.parentNode) {
-                feedback.parentNode.removeChild(feedback);
+                feedback.style.animation = 'feedbackPop 0.3s ease-in reverse';
+                setTimeout(() => {
+                    if (feedback.parentNode) {
+                        feedback.parentNode.removeChild(feedback);
+                    }
+                }, 300);
             }
         }, 1500);
     }
@@ -317,23 +520,91 @@ class SwipeHandler {
 
         this.answered = false;
         if (this.card) {
+            // Reset card state
             this.card.style.transform = '';
             this.card.style.opacity = '';
             this.card.style.transition = '';
-            this.card.style.borderColor = '';
-            this.card.style.background = '';
-            this.card.classList.remove('swiping');
+            this.card.classList.remove('swiping', 'like-preview', 'dislike-preview');
 
+            // Update question text
             var cardQuestion = this.card.querySelector('.card-question');
             if (cardQuestion && questionText) {
                 cardQuestion.textContent = questionText;
+                
+                // Add entrance animation
+                cardQuestion.style.animation = 'questionSlideIn 0.6s ease-out';
             }
+
+            // Update card icon based on question content
+            this.updateCardIcon(questionText);
+
+            // Reset hints
+            const hints = this.card.querySelectorAll('.swipe-hint');
+            hints.forEach(hint => {
+                hint.style.opacity = '0.7';
+                hint.style.transform = 'scale(1)';
+            });
         }
 
         if (this.isTouchDevice) {
             this.showSwipeInterface();
         } else {
             this.showButtonInterface();
+        }
+    }
+
+    updateCardIcon(questionText) {
+        const icon = this.card.querySelector('.card-icon');
+        if (!icon) return;
+
+        // Simple icon selection based on question content
+        let newIcon = '❓';
+        const text = questionText.toLowerCase();
+        
+        if (text.includes('nourriture') || text.includes('manger') || text.includes('cuisiner') || text.includes('pizza')) {
+            newIcon = '🍕';
+        } else if (text.includes('musique') || text.includes('chanter') || text.includes('danser')) {
+            newIcon = '🎵';
+        } else if (text.includes('sport') || text.includes('exercice') || text.includes('promenade')) {
+            newIcon = '🏃‍♂️';
+        } else if (text.includes('film') || text.includes('télé') || text.includes('regarder')) {
+            newIcon = '🎬';
+        } else if (text.includes('shopping') || text.includes('acheter')) {
+            newIcon = '🛍️';
+        } else if (text.includes('nature') || text.includes('camping') || text.includes('plein air')) {
+            newIcon = '🌲';
+        } else if (text.includes('fête') || text.includes('surprise') || text.includes('célébrer')) {
+            newIcon = '🎉';
+        } else if (text.includes('photo') || text.includes('selfie')) {
+            newIcon = '📸';
+        } else if (text.includes('jeu') || text.includes('jouer')) {
+            newIcon = '🎮';
+        } else if (text.includes('lever') || text.includes('matin') || text.includes('week-end')) {
+            newIcon = '🌅';
+        }
+
+        icon.textContent = newIcon;
+        
+        // Add icon change animation
+        icon.style.animation = 'iconChange 0.5s ease-out';
+        
+        // Add keyframe if not exists
+        if (!document.querySelector('#icon-change-animation')) {
+            const style = document.createElement('style');
+            style.id = 'icon-change-animation';
+            style.textContent = `
+                @keyframes iconChange {
+                    0% { transform: scale(0.5) rotate(-180deg); opacity: 0; }
+                    50% { transform: scale(1.2) rotate(-90deg); opacity: 0.7; }
+                    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+                }
+                
+                @keyframes questionSlideIn {
+                    0% { transform: translateY(20px); opacity: 0; }
+                    100% { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
         }
     }
 
@@ -365,12 +636,33 @@ class SwipeHandler {
 
     destroy() {
         this.log('Destroying SwipeHandler');
-        // Event listeners will be cleaned up automatically when elements are removed
+        
+        // Cancel any ongoing animations
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+        
+        // Remove event listeners by cloning and replacing the card element
+        if (this.card && this.card.parentNode) {
+            const newCard = this.card.cloneNode(true);
+            this.card.parentNode.replaceChild(newCard, this.card);
+            this.card = newCard;
+        }
+    }
+
+    // Add method to handle orientation changes
+    handleOrientationChange() {
+        this.log('Orientation changed, reinitializing...');
+        setTimeout(() => {
+            this.resetCard();
+        }, 100);
     }
 }
 
+// Global swipe handler instance
 var swipeHandler = null;
 
+// Main initialization function
 function initializeSwipe() {
     console.log('[Main] Initializing swipe functionality');
     if (swipeHandler) {
@@ -378,17 +670,30 @@ function initializeSwipe() {
     }
     swipeHandler = new SwipeHandler();
     swipeHandler.init();
+    
+    // Add orientation change listener
+    window.addEventListener('orientationchange', function() {
+        if (swipeHandler) {
+            swipeHandler.handleOrientationChange();
+        }
+    });
 }
 
+// Update swipe card with new question
 function updateSwipeCard(questionText) {
     console.log('[Main] updateSwipeCard called with: ' + questionText);
     if (swipeHandler) {
         swipeHandler.updateCard(questionText);
     } else {
-        console.log('[Main] No swipe handler available');
+        console.log('[Main] No swipe handler available, initializing...');
+        initializeSwipe();
+        if (swipeHandler) {
+            swipeHandler.updateCard(questionText);
+        }
     }
 }
 
+// Hide swipe card interface
 function hideSwipeCard() {
     console.log('[Main] hideSwipeCard called');
     if (swipeHandler) {
@@ -396,6 +701,7 @@ function hideSwipeCard() {
     }
 }
 
+// Show swipe card interface
 function showSwipeCard() {
     console.log('[Main] showSwipeCard called');
     if (swipeHandler) {
@@ -403,12 +709,23 @@ function showSwipeCard() {
     }
 }
 
+// Check if device supports touch
 function isTouchDevice() {
     return swipeHandler ? swipeHandler.isTouchDevice : false;
 }
 
+// Export functions to global scope
 window.initializeSwipe = initializeSwipe;
 window.updateSwipeCard = updateSwipeCard;
 window.hideSwipeCard = hideSwipeCard;
 window.showSwipeCard = showSwipeCard;
 window.isTouchDevice = isTouchDevice;
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Swipe] DOM loaded, ready for initialization');
+    });
+} else {
+    console.log('[Swipe] DOM already loaded, ready for initialization');
+}
