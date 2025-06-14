@@ -545,9 +545,7 @@ function addGuestResultsSection(fannyAnswer, nelsonAnswer) {
             <div class="guest-column-header" style="
                 background: linear-gradient(135deg, #E91E63, #F06292);
                 color: white;
-                padding: 8px 12px;
                 border-radius: 8px;
-                margin-bottom: 12px;
                 font-weight: 600;
                 text-align: center;
             ">
@@ -567,9 +565,7 @@ function addGuestResultsSection(fannyAnswer, nelsonAnswer) {
             <div class="guest-column-header" style="
                 background: linear-gradient(135deg, #2196F3, #64B5F6);
                 color: white;
-                padding: 8px 12px;
                 border-radius: 8px;
-                margin-bottom: 12px;
                 font-weight: 600;
                 text-align: center;
             ">
@@ -985,7 +981,7 @@ function showTopGuestMatchView() {
                 display: flex; 
                 justify-content: space-between; 
                 align-items: center; 
-                padding: 8px 0; 
+                padding: 1px 0; 
                 border-bottom: 1px solid rgba(233, 30, 99, 0.1);
                 transition: all 0.3s ease;
             " onmouseover="this.style.background='rgba(233, 30, 99, 0.05)'; this.style.transform='translateX(5px)'"
@@ -1019,7 +1015,7 @@ function showTopGuestMatchView() {
                 display: flex; 
                 justify-content: space-between; 
                 align-items: center; 
-                padding: 8px 0; 
+                padding: 1px 0; 
                 border-bottom: 1px solid rgba(33, 150, 243, 0.1);
                 transition: all 0.3s ease;
             " onmouseover="this.style.background='rgba(33, 150, 243, 0.05)'; this.style.transform='translateX(5px)'"
