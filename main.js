@@ -1,13 +1,49 @@
 // main.js - Application Initialization and Event Handlers (Updated for Guests)
 
-// Initialize the application
 function initializeApp() {
     // Initialize connection status
     updateConnectionStatus(false);
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Check for URL auto-join
+    checkForAutoJoin();
 }
+
+// Function to autojoin via url
+function checkForAutoJoin() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room');
+    
+    if (roomCode && roomCode.trim()) {
+        const cleanRoomCode = roomCode.trim().toUpperCase();
+        console.log('Auto-joining room from URL:', cleanRoomCode);
+        
+        // Set the room code in the input field
+        const roomInput = document.getElementById('roomCodeInput');
+        if (roomInput) {
+            roomInput.value = cleanRoomCode;
+        }
+        
+        // Auto-join the room
+        gameState.roomCode = cleanRoomCode;
+        loadRoomData();
+        
+        // Show role selection
+        document.getElementById('roleSelection').style.display = 'block';
+        updateRoomIndicator();
+        startSync();
+        updateConnectionStatus(true);
+        
+        // Hide room section on successful auto-join
+        const roomSection = document.querySelector('.room-section');
+        if (roomSection) {
+            roomSection.style.display = 'none';
+        }
+    }
+}
+
 
 // Setup event listeners
 function setupEventListeners() {

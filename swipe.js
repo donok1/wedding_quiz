@@ -517,7 +517,9 @@ class SwipeHandler {
         } else if (text.includes('Cuisiner')) {
             newIcon = '🔪';
         } else if (text.includes('Echanger')) {
-            newIcon = '🔀';
+            newIcon = '🔀'; 
+        } else if (text.includes('société')) {
+            newIcon = '♟️';
         } else if (text.includes('film') || text.includes('télé') || text.includes('regarder')) {
             newIcon = '🎬';
         } else if (text.includes('shopping') || text.includes('acheter')) {

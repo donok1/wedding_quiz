@@ -2,7 +2,7 @@
 
 // Questions array in French
 const questions = [
-    "L'ananas sur la pizza",
+    "De l'ananas sur la pizza",
     "Les films d'horreur",
     "Camper dans la nature",
     "Les fêtes surprises",
